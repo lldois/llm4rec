@@ -1,0 +1,4 @@
+scp -r ll@10.180.3.158:/home/ll/llm4rec/demo/output C:\Users\86152\Desktop\
+
+7.5
+run baseline
