@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # 01_convert_data.sh - 把 baseline_data 的 64 parquet 转 Alpaca JSONL
-# 输出: data/data_final.jsonl + convert_summary.json + convert_filter.log
+# 输出: data/dataset.jsonl + convert_summary.json + convert_filter.log
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 ROOT=demo
-OUT=$ROOT/data/data_final.jsonl
+OUT=$ROOT/data/dataset.jsonl
 
 source $ROOT/LLaMA-Factory/.venv/bin/activate
 

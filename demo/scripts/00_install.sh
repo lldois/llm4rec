@@ -28,6 +28,7 @@ source "$VENV/bin/activate"
 echo "[run] install LLaMA-Factory (editable) + metrics deps"
 uv pip install -e "$LF_DIR"
 uv pip install -r "$LF_DIR/requirements/metrics.txt"
+uv pip install socksio
 
 # 1.4 配置环境（请自行配置）
 echo "[run] pin torch 2.7.1+cu126"

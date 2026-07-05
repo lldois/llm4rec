@@ -9,3 +9,15 @@ wheels/
 # Virtual environments
 .venv
 Explorer_LLM_Rec_Competition/
+
+# Demo raw/intermediate data
+demo/baseline-data/*
+!demo/baseline-data/dataset.tar.gz
+
+# Demo converted data
+demo/data/*
+!demo/data/data_final.jsonl
+
+# Demo install/training artifacts
+demo/flash_install.log
+demo/output/

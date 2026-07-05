@@ -10,7 +10,7 @@ import pathlib
 import sys
 
 INFO_PATH = pathlib.Path("demo/LLaMA-Factory/data/dataset_info.json").resolve()
-DATA_PATH = str(pathlib.Path("demo/data/data_final.jsonl").resolve())
+DATA_PATH = str(pathlib.Path("demo/data/dataset.jsonl").resolve())
 
 ENTRY = {
     "file_name": DATA_PATH,

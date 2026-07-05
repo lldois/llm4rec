@@ -32,10 +32,10 @@ bash demo/scripts/run_all.sh
 下载得到的是 jsonl 格式（`[{system, prompt, response}]`），需要用 `convert_jsonl.py` 转成 Alpaca jsonl：
 
 ```bash
-# 把 sampled/ 下所有 *.jsonl 合并 → demo/data/data_final.jsonl
+# 把 sampled/ 下所有 *.jsonl 合并 → demo/data/dataset.jsonl
 python demo/convert_jsonl.py \
   --input  demo/baseline-data/baseline_data/sampled \
-  --output demo/data/data_final.jsonl \
+  --output demo/data/dataset.jsonl \
   --shuffle --shuffle-seed 2026
 ```
 
@@ -53,7 +53,8 @@ demo/
 ├── config/
 │   └── demo.yaml                   # 训练配置
 ├── data/
-│   └── data_final.jsonl            # 10 条 alpaca 样本
+│   ├── data_final.sample_backup.jsonl # 10 条 alpaca 参考样本
+│   └── dataset.jsonl               # 转换后的训练样本（本地生成，git 忽略）
 ├── scripts/
 │   ├── 00_install.sh
 │   ├── 01_convert_data.sh
