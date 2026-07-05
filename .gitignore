@@ -9,6 +9,7 @@ wheels/
 # Virtual environments
 .venv
 Explorer_LLM_Rec_Competition/
+demo/LLaMA-Factory/
 
 # Demo raw/intermediate data
 demo/baseline-data/*
