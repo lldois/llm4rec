@@ -22,3 +22,11 @@ demo/data/*
 # Demo install/training artifacts
 demo/flash_install.log
 demo/output/
+
+# Experiment artifacts
+experiments/data/*.jsonl
+experiments/outputs/
+experiments/logs/supervisor_status.jsonl
+experiments/**/data/*.jsonl
+experiments/**/outputs/
+experiments/**/__pycache__/

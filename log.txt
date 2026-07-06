@@ -2,3 +2,33 @@ scp -r ll@10.180.3.158:/home/ll/llm4rec/demo/output C:\Users\86152\Desktop\
 
 7.5
 run baseline
+
+[2026-07-06 00:05:36] start experiment preparation; deadline=2026-07-06 08:00:00 +0800
+
+
+2026-07-06 experiments summary
+- summary: /home/ll/llm4rec/experiments/logs/summary.md
+- configs: /home/ll/llm4rec/experiments/configs
+- outputs: /home/ll/llm4rec/experiments/outputs
+- deadline enforced: 2026-07-06 08:00:00 +0800
+- v01_all_lr1e5: dataset=all, lr=1.0e-5, epochs=1, scheduler=cosine, train_loss=1.7490570976506525, last_logged_loss=1.7104473114013672, runtime=3250.6471, output=/home/ll/llm4rec/experiments/outputs/v01_all_lr1e5
+- v02_all_lr3e5: dataset=all, lr=3.0e-5, epochs=1, scheduler=cosine, train_loss=1.4728496278350676, last_logged_loss=1.359067726135254, runtime=3210.9735, output=/home/ll/llm4rec/experiments/outputs/v02_all_lr3e5
+- v03_all_lr1e5_ep2: dataset=all, lr=1.0e-5, epochs=2, scheduler=cosine, train_loss=1.6445721892555754, last_logged_loss=1.5597107887268067, runtime=6416.9422, output=/home/ll/llm4rec/experiments/outputs/v03_all_lr1e5_ep2
+- v04_balanced_core_lr2e5: dataset=balanced_core, lr=2.0e-5, epochs=1, scheduler=cosine, train_loss=1.4641528666311143, last_logged_loss=1.4022762298583984, runtime=5382.2079, output=/home/ll/llm4rec/experiments/outputs/v04_balanced_core_lr2e5
+- v05_user_item_up_lr2e5: dataset=user_item_up, lr=2.0e-5, epochs=1, scheduler=cosine, train_loss=1.4733744319910553, last_logged_loss=1.3570124626159668, runtime=6290.4242, output=/home/ll/llm4rec/experiments/outputs/v05_user_item_up_lr2e5
+- v06_no_think_input_lr2e5: dataset=no_think_input, lr=2.0e-5, epochs=1, scheduler=cosine, train_loss=1.5678150677680969, last_logged_loss=1.4072744369506835, runtime=3206.5361, output=/home/ll/llm4rec/experiments/outputs/v06_no_think_input_lr2e5
+- v07_final_only_lr2e5: dataset=final_only, lr=2.0e-5, epochs=1, scheduler=cosine, train_loss=1.2549793832631224, last_logged_loss=1.308372402191162, runtime=2346.2604, output=/home/ll/llm4rec/experiments/outputs/v07_final_only_lr2e5
+- v08_rec_focus_lr2e5: dataset=rec_focus, lr=2.0e-5, epochs=1, scheduler=cosine, train_loss=1.5747115251829298, last_logged_loss=1.4709739685058594, runtime=2170.5286, output=/home/ll/llm4rec/experiments/outputs/v08_rec_focus_lr2e5
+- v09_all_linear_lr2e5: dataset=all, lr=2.0e-5, epochs=1, scheduler=linear, train_loss=1.5956898921698182, last_logged_loss=1.4410962104797362, runtime=3205.1567, output=/home/ll/llm4rec/experiments/outputs/v09_all_linear_lr2e5
+- v10_balanced_core_lr1e5_ep2: dataset=balanced_core, lr=1.0e-5, epochs=2, scheduler=cosine, train_loss=1.5350287483722507, last_logged_loss=1.3438663482666016, runtime=10749.7665, output=/home/ll/llm4rec/experiments/outputs/v10_balanced_core_lr1e5_ep2
+
+[2026-07-07] cleanup checkpoints and disable intermediate checkpoint saving
+- removed checkpoint-* under demo/output and experiments/outputs
+- set save_strategy: "no" in demo/config/demo.yaml and experiment configs/generator
+- disk after cleanup: demo/output=1.6G, experiment outputs=16G
+
+[2026-07-07] flatten experiments layout and clean generated datasets
+- flattened timestamped experiment directory into experiments/*
+- renamed experiment runner to experiments/run_experiments.py
+- updated configs/log summaries to experiments/{configs,outputs,data}
+- removed generated experiments/data/*.jsonl; keep manifest and generation script only

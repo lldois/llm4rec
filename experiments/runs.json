@@ -1,0 +1,112 @@
+[
+  {
+    "name": "v01_all_lr1e5",
+    "dataset": "all",
+    "lr": "1.0e-5",
+    "epochs": 1,
+    "warmup": 0.03,
+    "scheduler": "cosine",
+    "seed": 202607061,
+    "note": "All data, conservative LR to reduce forgetting.",
+    "config": "/home/ll/llm4rec/experiments/configs/v01_all_lr1e5.yaml"
+  },
+  {
+    "name": "v02_all_lr3e5",
+    "dataset": "all",
+    "lr": "3.0e-5",
+    "epochs": 1,
+    "warmup": 0.03,
+    "scheduler": "cosine",
+    "seed": 202607062,
+    "note": "All data, aggressive LR for stronger task adaptation.",
+    "config": "/home/ll/llm4rec/experiments/configs/v02_all_lr3e5.yaml"
+  },
+  {
+    "name": "v03_all_lr1e5_ep2",
+    "dataset": "all",
+    "lr": "1.0e-5",
+    "epochs": 2,
+    "warmup": 0.03,
+    "scheduler": "cosine",
+    "seed": 202607063,
+    "note": "All data, two epochs with low LR.",
+    "config": "/home/ll/llm4rec/experiments/configs/v03_all_lr1e5_ep2.yaml"
+  },
+  {
+    "name": "v04_balanced_core_lr2e5",
+    "dataset": "balanced_core",
+    "lr": "2.0e-5",
+    "epochs": 1,
+    "warmup": 0.03,
+    "scheduler": "cosine",
+    "seed": 202607064,
+    "note": "Downsample rec and upweight user so the four-dimension evaluation is less rec-heavy.",
+    "config": "/home/ll/llm4rec/experiments/configs/v04_balanced_core_lr2e5.yaml"
+  },
+  {
+    "name": "v05_user_item_up_lr2e5",
+    "dataset": "user_item_up",
+    "lr": "2.0e-5",
+    "epochs": 1,
+    "warmup": 0.03,
+    "scheduler": "cosine",
+    "seed": 202607065,
+    "note": "All data plus extra user and item examples.",
+    "config": "/home/ll/llm4rec/experiments/configs/v05_user_item_up_lr2e5.yaml"
+  },
+  {
+    "name": "v06_no_think_input_lr2e5",
+    "dataset": "no_think_input",
+    "lr": "2.0e-5",
+    "epochs": 1,
+    "warmup": 0.03,
+    "scheduler": "cosine",
+    "seed": 202607066,
+    "note": "Strip /think or /no_think suffix from inputs while keeping CoT outputs.",
+    "config": "/home/ll/llm4rec/experiments/configs/v06_no_think_input_lr2e5.yaml"
+  },
+  {
+    "name": "v07_final_only_lr2e5",
+    "dataset": "final_only",
+    "lr": "2.0e-5",
+    "epochs": 1,
+    "warmup": 0.03,
+    "scheduler": "cosine",
+    "seed": 202607067,
+    "note": "Remove leading <think>...</think> from outputs when possible; trains concise final answers.",
+    "config": "/home/ll/llm4rec/experiments/configs/v07_final_only_lr2e5.yaml"
+  },
+  {
+    "name": "v08_rec_focus_lr2e5",
+    "dataset": "rec_focus",
+    "lr": "2.0e-5",
+    "epochs": 1,
+    "warmup": 0.03,
+    "scheduler": "cosine",
+    "seed": 202607068,
+    "note": "Recommendation-task files only; a specialist checkpoint.",
+    "config": "/home/ll/llm4rec/experiments/configs/v08_rec_focus_lr2e5.yaml"
+  },
+  {
+    "name": "v09_all_linear_lr2e5",
+    "dataset": "all",
+    "lr": "2.0e-5",
+    "epochs": 1,
+    "warmup": 0.05,
+    "scheduler": "linear",
+    "seed": 202607069,
+    "note": "Baseline LR with linear decay and slightly longer warmup.",
+    "config": "/home/ll/llm4rec/experiments/configs/v09_all_linear_lr2e5.yaml"
+  },
+  {
+    "name": "v10_balanced_core_lr1e5_ep2",
+    "dataset": "balanced_core",
+    "lr": "1.0e-5",
+    "epochs": 2,
+    "warmup": 0.03,
+    "scheduler": "cosine",
+    "seed": 202607070,
+    "note": "Balanced data with low-LR second pass.",
+    "config": "/home/ll/llm4rec/experiments/configs/v10_balanced_core_lr1e5_ep2.yaml"
+  }
+]
