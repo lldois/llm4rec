@@ -1,67 +1,47 @@
 {
-  "all": {
-    "name": "all",
-    "path": "/home/ll/llm4rec/experiments/data/all.jsonl",
-    "records": 32480,
+  "item_cot_focus": {
+    "name": "item_cot_focus",
+    "path": "/home/ll/llm4rec/experiments/data/item_cot_focus.jsonl",
+    "records": 74016,
     "groups": {
-      "item": 10384,
-      "rec": 19204,
-      "user": 2892
-    },
-    "seed": 20260707
-  },
-  "balanced_core": {
-    "name": "balanced_core",
-    "path": "/home/ll/llm4rec/experiments/data/balanced_core.jsonl",
-    "records": 33952,
-    "groups": {
-      "item": 10384,
-      "user": 11568,
-      "rec": 12000
-    },
-    "seed": 20260708
-  },
-  "user_item_up": {
-    "name": "user_item_up",
-    "path": "/home/ll/llm4rec/experiments/data/user_item_up.jsonl",
-    "records": 51540,
-    "groups": {
-      "rec": 19204,
-      "item": 20768,
-      "user": 11568
-    },
-    "seed": 20260709
-  },
-  "no_think_input": {
-    "name": "no_think_input",
-    "path": "/home/ll/llm4rec/experiments/data/no_think_input.jsonl",
-    "records": 32480,
-    "groups": {
-      "item": 10384,
-      "rec": 19204,
-      "user": 2892
-    },
-    "seed": 20260710
-  },
-  "final_only": {
-    "name": "final_only",
-    "path": "/home/ll/llm4rec/experiments/data/final_only.jsonl",
-    "records": 32480,
-    "groups": {
-      "item": 10384,
-      "rec": 19204,
-      "user": 2892
-    },
-    "seed": 20260711
-  },
-  "rec_focus": {
-    "name": "rec_focus",
-    "path": "/home/ll/llm4rec/experiments/data/rec_focus.jsonl",
-    "records": 19204,
-    "groups": {
+      "item": 51920,
+      "user": 2892,
       "rec": 19204
     },
-    "seed": 20260712
+    "seed": 202607111
+  },
+  "user_cot_focus": {
+    "name": "user_cot_focus",
+    "path": "/home/ll/llm4rec/experiments/data/user_cot_focus.jsonl",
+    "records": 46940,
+    "groups": {
+      "rec": 19204,
+      "user": 17352,
+      "item": 10384
+    },
+    "seed": 202607112
+  },
+  "rec_cot_focus": {
+    "name": "rec_cot_focus",
+    "path": "/home/ll/llm4rec/experiments/data/rec_cot_focus.jsonl",
+    "records": 51684,
+    "groups": {
+      "item": 10384,
+      "rec": 38408,
+      "user": 2892
+    },
+    "seed": 202607113
+  },
+  "world_cot_preserve": {
+    "name": "world_cot_preserve",
+    "path": "/home/ll/llm4rec/experiments/data/world_cot_preserve.jsonl",
+    "records": 32480,
+    "groups": {
+      "rec": 19204,
+      "item": 10384,
+      "user": 2892
+    },
+    "seed": 202607114
   },
   "_notes": {
     "raw_counts": {
@@ -69,8 +49,42 @@
       "item": 10384,
       "user": 2892
     },
-    "final_only_outputs_stripped": 32480,
-    "balanced_core_recipe": "sample 12000 rec + all item + user x4",
-    "user_item_up_recipe": "all + item x1 extra + user x3 extra"
+    "baseline_scores": {
+      "total": 0.8184,
+      "item": 0.184,
+      "user": [
+        0.0442,
+        0.0375
+      ],
+      "rec": [
+        0.0672,
+        0.1054,
+        0.1344,
+        0.1089
+      ],
+      "world": 0.1368
+    },
+    "v07_scores": {
+      "total": 0.8978,
+      "item": 0.2146,
+      "user": [
+        0.0656,
+        0.0315
+      ],
+      "rec": [
+        0.0672,
+        0.136,
+        0.1428,
+        0.1044
+      ],
+      "world": 0.1357
+    },
+    "recipes": {
+      "item_cot_focus": "original CoT all + item x4 extra",
+      "user_cot_focus": "original CoT all + user x5 extra",
+      "rec_cot_focus": "original CoT all + rec x1 extra",
+      "world_cot_preserve": "original CoT all, lower LR in config to reduce common-sense forgetting"
+    },
+    "cot_policy": "preserve original <think>...</think> supervision; do not strip or shorten reasoning traces"
   }
 }

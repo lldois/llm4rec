@@ -5,6 +5,7 @@ This script intentionally keeps every experiment self-contained:
 dataset variant, yaml config, output directory, train.log, and summary.
 
 Set EXPERIMENT_DEADLINE="YYYY-MM-DD HH:MM:SS" to enforce a local hard stop.
+Set EXPERIMENT_HEARTBEAT_SECONDS to control supervisor polling logs.
 Generated dataset jsonl files are removed after training finishes because they
 can be recreated from the raw competition jsonl files.
 """
@@ -38,6 +39,7 @@ DATASET_INFO = LF_DIR / "data" / "dataset_info.json"
 TOP_LOG = ROOT / "log.txt"
 DEADLINE_TEXT = os.environ.get("EXPERIMENT_DEADLINE", "").strip()
 DEADLINE = datetime.strptime(DEADLINE_TEXT, "%Y-%m-%d %H:%M:%S") if DEADLINE_TEXT else None
+HEARTBEAT_SECONDS = int(os.environ.get("EXPERIMENT_HEARTBEAT_SECONDS", "300"))
 
 
 RAW_GROUPS = {
@@ -57,104 +59,44 @@ RAW_GROUPS = {
 
 RUNS = [
     {
-        "name": "v01_all_lr1e5",
-        "dataset": "all",
-        "lr": "1.0e-5",
-        "epochs": 1,
-        "warmup": 0.03,
-        "scheduler": "cosine",
-        "seed": 202607061,
-        "note": "All data, conservative LR to reduce forgetting.",
-    },
-    {
-        "name": "v02_all_lr3e5",
-        "dataset": "all",
-        "lr": "3.0e-5",
-        "epochs": 1,
-        "warmup": 0.03,
-        "scheduler": "cosine",
-        "seed": 202607062,
-        "note": "All data, aggressive LR for stronger task adaptation.",
-    },
-    {
-        "name": "v03_all_lr1e5_ep2",
-        "dataset": "all",
-        "lr": "1.0e-5",
-        "epochs": 2,
-        "warmup": 0.03,
-        "scheduler": "cosine",
-        "seed": 202607063,
-        "note": "All data, two epochs with low LR.",
-    },
-    {
-        "name": "v04_balanced_core_lr2e5",
-        "dataset": "balanced_core",
+        "name": "v11_item_cot_focus_lr2e5",
+        "dataset": "item_cot_focus",
         "lr": "2.0e-5",
         "epochs": 1,
         "warmup": 0.03,
         "scheduler": "cosine",
-        "seed": 202607064,
-        "note": "Downsample rec and upweight user so the four-dimension evaluation is less rec-heavy.",
+        "seed": 202607111,
+        "note": "懂物料专项：keep original CoT, all data + item x4 extra; strengthens itemic token perception.",
     },
     {
-        "name": "v05_user_item_up_lr2e5",
-        "dataset": "user_item_up",
+        "name": "v12_user_cot_focus_lr15e6",
+        "dataset": "user_cot_focus",
+        "lr": "1.5e-5",
+        "epochs": 1,
+        "warmup": 0.03,
+        "scheduler": "cosine",
+        "seed": 202607112,
+        "note": "懂用户专项：keep original CoT, all data + user x5 extra; targets evolution/action and topic-chain reasoning.",
+    },
+    {
+        "name": "v13_rec_cot_focus_lr2e5",
+        "dataset": "rec_cot_focus",
         "lr": "2.0e-5",
         "epochs": 1,
         "warmup": 0.03,
         "scheduler": "cosine",
-        "seed": 202607065,
-        "note": "All data plus extra user and item examples.",
+        "seed": 202607113,
+        "note": "懂推荐专项：keep original CoT, all data + rec x1 extra; tests recommendation-domain specialization.",
     },
     {
-        "name": "v06_no_think_input_lr2e5",
-        "dataset": "no_think_input",
-        "lr": "2.0e-5",
-        "epochs": 1,
-        "warmup": 0.03,
-        "scheduler": "cosine",
-        "seed": 202607066,
-        "note": "Strip /think or /no_think suffix from inputs while keeping CoT outputs.",
-    },
-    {
-        "name": "v07_final_only_lr2e5",
-        "dataset": "final_only",
-        "lr": "2.0e-5",
-        "epochs": 1,
-        "warmup": 0.03,
-        "scheduler": "cosine",
-        "seed": 202607067,
-        "note": "Remove leading <think>...</think> from outputs when possible; trains concise final answers.",
-    },
-    {
-        "name": "v08_rec_focus_lr2e5",
-        "dataset": "rec_focus",
-        "lr": "2.0e-5",
-        "epochs": 1,
-        "warmup": 0.03,
-        "scheduler": "cosine",
-        "seed": 202607068,
-        "note": "Recommendation-task files only; a specialist checkpoint.",
-    },
-    {
-        "name": "v09_all_linear_lr2e5",
-        "dataset": "all",
-        "lr": "2.0e-5",
+        "name": "v14_world_cot_preserve_lr8e6",
+        "dataset": "world_cot_preserve",
+        "lr": "8.0e-6",
         "epochs": 1,
         "warmup": 0.05,
         "scheduler": "linear",
-        "seed": 202607069,
-        "note": "Baseline LR with linear decay and slightly longer warmup.",
-    },
-    {
-        "name": "v10_balanced_core_lr1e5_ep2",
-        "dataset": "balanced_core",
-        "lr": "1.0e-5",
-        "epochs": 2,
-        "warmup": 0.03,
-        "scheduler": "cosine",
-        "seed": 202607070,
-        "note": "Balanced data with low-LR second pass.",
+        "seed": 202607114,
+        "note": "懂世界/保常识专项：keep original CoT, all data only with low LR and linear decay to reduce general-knowledge forgetting.",
     },
 ]
 
@@ -249,46 +191,40 @@ def prepare_datasets() -> dict[str, dict]:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     grouped = load_raw_records()
     all_records = grouped["rec"] + grouped["item"] + grouped["user"]
-    rng = random.Random(20260706)
-
-    balanced_rec = rng.sample(grouped["rec"], min(12000, len(grouped["rec"])))
-    balanced_core = balanced_rec + grouped["item"] + grouped["user"] * 4
-    user_item_up = all_records + grouped["item"] + grouped["user"] * 3
-
-    no_think_input = []
-    for rec in all_records:
-        new = dict(rec)
-        new["input"] = re.sub(r"/(?:no_)?think\s*$", "", new["input"]).rstrip()
-        no_think_input.append(new)
-
-    think_re = re.compile(r"^\s*<think>.*?</think>\s*", re.DOTALL)
-    final_only = []
-    stripped = 0
-    for rec in all_records:
-        new = dict(rec)
-        output = think_re.sub("", new["output"], count=1).lstrip()
-        if output and output != new["output"]:
-            new["output"] = output
-            stripped += 1
-        final_only.append(new)
 
     variants = {
-        "all": all_records,
-        "balanced_core": balanced_core,
-        "user_item_up": user_item_up,
-        "no_think_input": no_think_input,
-        "final_only": final_only,
-        "rec_focus": grouped["rec"],
+        "item_cot_focus": all_records + grouped["item"] * 4,
+        "user_cot_focus": all_records + grouped["user"] * 5,
+        "rec_cot_focus": all_records + grouped["rec"],
+        "world_cot_preserve": all_records,
     }
     manifest = {
-        name: write_dataset(name, records, seed=20260706 + i)
+        name: write_dataset(name, records, seed=202607110 + i)
         for i, (name, records) in enumerate(variants.items(), 1)
     }
     manifest["_notes"] = {
         "raw_counts": {k: len(v) for k, v in grouped.items()},
-        "final_only_outputs_stripped": stripped,
-        "balanced_core_recipe": "sample 12000 rec + all item + user x4",
-        "user_item_up_recipe": "all + item x1 extra + user x3 extra",
+        "baseline_scores": {
+            "total": 0.8184,
+            "item": 0.1840,
+            "user": [0.0442, 0.0375],
+            "rec": [0.0672, 0.1054, 0.1344, 0.1089],
+            "world": 0.1368,
+        },
+        "v07_scores": {
+            "total": 0.8978,
+            "item": 0.2146,
+            "user": [0.0656, 0.0315],
+            "rec": [0.0672, 0.1360, 0.1428, 0.1044],
+            "world": 0.1357,
+        },
+        "recipes": {
+            "item_cot_focus": "original CoT all + item x4 extra",
+            "user_cot_focus": "original CoT all + user x5 extra",
+            "rec_cot_focus": "original CoT all + rec x1 extra",
+            "world_cot_preserve": "original CoT all, lower LR in config to reduce common-sense forgetting",
+        },
+        "cot_policy": "preserve original <think>...</think> supervision; do not strip or shorten reasoning traces",
     }
     (DATA_DIR / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2),
@@ -660,6 +596,7 @@ def main() -> int:
                 "event": "prepared",
                 "runs": [r["name"] for r in RUNS],
                 "deadline": deadline_label(),
+                "heartbeat_seconds": HEARTBEAT_SECONDS,
                 "manifest": str((DATA_DIR / "manifest.json").resolve()),
             },
             ensure_ascii=False,
@@ -691,7 +628,7 @@ def main() -> int:
             )
             + "\n",
         )
-        time.sleep(300)
+        time.sleep(HEARTBEAT_SECONDS)
     for thread in threads:
         thread.join()
 

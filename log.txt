@@ -32,3 +32,29 @@ run baseline
 - renamed experiment runner to experiments/run_experiments.py
 - updated configs/log summaries to experiments/{configs,outputs,data}
 - removed generated experiments/data/*.jsonl; keep manifest and generation script only
+
+[2026-07-07 02:45] start v11-v14 targeted experiments; deadline=2026-07-07 09:00:00 +0800
+- public context: LLM-Rec challenge evaluates four dimensions: 懂物料/懂用户/懂推荐/懂世界; OneReason report emphasizes itemic-token perception plus cognition-enhanced CoT/reasoning.
+- correction after review: do not continue final-only/final-clean as main direction; keep original <think>...</think> supervision because reasoning traces are central to OneReason/LLM-Rec.
+- local eval baseline: total=0.8184, item=0.1840, user=[0.0442,0.0375], rec=[0.0672,0.1054,0.1344,0.1089], world=0.1368
+- local eval v07: total=0.8978, item=0.2146, user=[0.0656,0.0315], rec=[0.0672,0.1360,0.1428,0.1044], world=0.1357
+- observation: v7 is a useful leaderboard signal, but v11-v14 preserve CoT and only change task data mix / LR.
+- v11_item_cot_focus_lr2e5: 懂物料专项, original CoT all + item x4 extra, lr=2e-5
+- v12_user_cot_focus_lr15e6: 懂用户专项, original CoT all + user x5 extra, lr=1.5e-5
+- v13_rec_cot_focus_lr2e5: 懂推荐专项, original CoT all + rec x1 extra, lr=2e-5
+- v14_world_cot_preserve_lr8e6: 懂世界专项/保常识, original CoT all, lr=8e-6, linear decay
+- execution: two independent single-GPU processes; hourly supervisor heartbeat; force stop at 09:00 if still running.
+
+
+[2026-07-07 02:47:11] start experiment preparation; deadline=2026-07-07 09:00:00 +0800
+
+
+[2026-07-07 06:47:17] experiments summary
+- summary: /home/ll/llm4rec/experiments/logs/summary.md
+- configs: /home/ll/llm4rec/experiments/configs
+- outputs: /home/ll/llm4rec/experiments/outputs
+- deadline enforced: 2026-07-07 09:00:00 +0800
+- v11_item_cot_focus_lr2e5: dataset=item_cot_focus, lr=2.0e-5, epochs=1, scheduler=cosine, train_loss=1.623693225685686, last_logged_loss=1.528977870941162, runtime=3645.8723, output=/home/ll/llm4rec/experiments/outputs/v11_item_cot_focus_lr2e5
+- v12_user_cot_focus_lr15e6: dataset=user_cot_focus, lr=1.5e-5, epochs=1, scheduler=cosine, train_loss=1.4709593629888476, last_logged_loss=1.3635743141174317, runtime=8039.0159, output=/home/ll/llm4rec/experiments/outputs/v12_user_cot_focus_lr15e6
+- v13_rec_cot_focus_lr2e5: dataset=rec_cot_focus, lr=2.0e-5, epochs=1, scheduler=cosine, train_loss=1.470360949480975, last_logged_loss=1.4335641860961914, runtime=5409.9531, output=/home/ll/llm4rec/experiments/outputs/v13_rec_cot_focus_lr2e5
+- v14_world_cot_preserve_lr8e6: dataset=world_cot_preserve, lr=8.0e-6, epochs=1, scheduler=linear, train_loss=1.8377702086790462, last_logged_loss=1.6935569763183593, runtime=3207.2413, output=/home/ll/llm4rec/experiments/outputs/v14_world_cot_preserve_lr8e6
