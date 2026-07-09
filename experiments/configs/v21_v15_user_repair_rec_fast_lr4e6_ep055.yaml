@@ -1,0 +1,44 @@
+### model
+model_name_or_path: /home/ll/llm4rec/experiments/outputs/v15_user_logic_json_lr15e6
+trust_remote_code: true
+flash_attn: fa2
+
+### method
+stage: sft
+do_train: true
+finetuning_type: full
+enable_liger_kernel: true
+
+### dataset
+dataset: exp_v15_user_repair_rec_fast
+dataset_dir: demo/LLaMA-Factory/data
+template: qwen3_nothink
+cutoff_len: 32768
+packing: true
+neat_packing: true
+overwrite_cache: true
+preprocessing_num_workers: 16
+dataloader_num_workers: 8
+
+### output
+output_dir: /home/ll/llm4rec/experiments/outputs/v21_v15_user_repair_rec_fast_lr4e6_ep055
+logging_steps: 5
+save_strategy: "no"
+save_total_limit: 1
+plot_loss: true
+overwrite_output_dir: true
+save_only_model: false
+report_to: tensorboard
+logging_dir: /home/ll/llm4rec/experiments/outputs/v21_v15_user_repair_rec_fast_lr4e6_ep055/tb
+
+### train
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 4
+learning_rate: 4.0e-6
+num_train_epochs: 0.55
+lr_scheduler_type: cosine
+warmup_ratio: 0.02
+weight_decay: 0.0
+bf16: true
+pure_bf16: true
+seed: 202607213

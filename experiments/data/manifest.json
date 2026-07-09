@@ -1,47 +1,73 @@
 {
-  "item_cot_focus": {
-    "name": "item_cot_focus",
-    "path": "/home/ll/llm4rec/experiments/data/item_cot_focus.jsonl",
-    "records": 74016,
+  "scratch_clean_cot_ep3": {
+    "name": "scratch_clean_cot_ep3",
+    "path": "/home/ll/llm4rec/experiments/data/scratch_clean_cot_ep3.jsonl",
+    "records": 66060,
     "groups": {
-      "item": 51920,
-      "user": 2892,
-      "rec": 19204
+      "user": 9278,
+      "item": 21578,
+      "rec": 35204
     },
+    "variants": {
+      "user_array_json_strict": 1588,
+      "raw": 32480,
+      "item_short_think": 2792,
+      "rec_cot_pattern_clean": 9600,
+      "rec_no_think_direct_final": 6400,
+      "user_strict_array": 1588,
+      "item_compact_cot": 5597,
+      "user_extra_no_think_logic": 602,
+      "item_no_think_direct_final": 2805,
+      "user_logic_json_strict": 1304,
+      "user_strict_logic": 1304
+    },
+    "sha256": "a7de0c5c501a7dfeca8170ca9f37a0fa24eae24d78a83164cc24ff502e619a38",
     "seed": 202607111
   },
-  "user_cot_focus": {
-    "name": "user_cot_focus",
-    "path": "/home/ll/llm4rec/experiments/data/user_cot_focus.jsonl",
-    "records": 46940,
+  "scratch_clean_cot_guard_ep5": {
+    "name": "scratch_clean_cot_guard_ep5",
+    "path": "/home/ll/llm4rec/experiments/data/scratch_clean_cot_guard_ep5.jsonl",
+    "records": 60765,
     "groups": {
-      "rec": 19204,
-      "user": 17352,
-      "item": 10384
+      "rec": 27204,
+      "item": 27175,
+      "user": 6386
     },
+    "variants": {
+      "raw": 32480,
+      "item_compact_cot": 5597,
+      "rec_no_think_direct_final": 3200,
+      "rec_cot_pattern_clean": 4800,
+      "item_no_think_direct_final": 5610,
+      "item_short_think": 5584,
+      "user_strict_array": 1588,
+      "user_extra_no_think_logic": 602,
+      "user_strict_logic": 1304
+    },
+    "sha256": "805b812a7cf3f9d86b8067d1d19b7fc116fb6739c75ab6aa04c16a4a13bb1419",
     "seed": 202607112
   },
-  "rec_cot_focus": {
-    "name": "rec_cot_focus",
-    "path": "/home/ll/llm4rec/experiments/data/rec_cot_focus.jsonl",
-    "records": 51684,
+  "v15_cot_light_repair": {
+    "name": "v15_cot_light_repair",
+    "path": "/home/ll/llm4rec/experiments/data/v15_cot_light_repair.jsonl",
+    "records": 27334,
     "groups": {
-      "item": 10384,
-      "rec": 38408,
-      "user": 2892
+      "rec": 11200,
+      "user": 4940,
+      "item": 11194
     },
+    "variants": {
+      "rec_short_think_final": 4800,
+      "user_strict_array": 2375,
+      "rec_no_think_direct_final": 6400,
+      "item_no_think_direct_final": 2805,
+      "user_strict_logic": 1963,
+      "item_compact_cot": 5597,
+      "user_extra_no_think_logic": 602,
+      "item_short_think": 2792
+    },
+    "sha256": "2842c6490bff3273d3b15c4443bd1ea56ef7806c9d7f1800110acca5a521de19",
     "seed": 202607113
-  },
-  "world_cot_preserve": {
-    "name": "world_cot_preserve",
-    "path": "/home/ll/llm4rec/experiments/data/world_cot_preserve.jsonl",
-    "records": 32480,
-    "groups": {
-      "rec": 19204,
-      "item": 10384,
-      "user": 2892
-    },
-    "seed": 202607114
   },
   "_notes": {
     "raw_counts": {
@@ -79,12 +105,92 @@
       ],
       "world": 0.1357
     },
-    "recipes": {
-      "item_cot_focus": "original CoT all + item x4 extra",
-      "user_cot_focus": "original CoT all + user x5 extra",
-      "rec_cot_focus": "original CoT all + rec x1 extra",
-      "world_cot_preserve": "original CoT all, lower LR in config to reduce common-sense forgetting"
+    "v11_v14_scores": {
+      "v11": {
+        "total": 0.8545,
+        "item": 0.2146,
+        "user": [
+          0.0301,
+          0.0416
+        ],
+        "rec": [
+          0.0672,
+          0.1156,
+          0.1386,
+          0.1089
+        ],
+        "world": 0.1379
+      },
+      "v12": {
+        "total": 0.8755,
+        "item": 0.2146,
+        "user": [
+          0.078,
+          0.0412
+        ],
+        "rec": [
+          0.0672,
+          0.1088,
+          0.1176,
+          0.1098
+        ],
+        "world": 0.1383
+      },
+      "v13": {
+        "total": 0.7743,
+        "item": 0.1533,
+        "user": [
+          0.0447,
+          0.0431
+        ],
+        "rec": [
+          0.048,
+          0.102,
+          0.1386,
+          0.1071
+        ],
+        "world": 0.1375
+      },
+      "v14": {
+        "total": 0.6743,
+        "item": 0.1533,
+        "user": [
+          0.0036,
+          0.029
+        ],
+        "rec": [
+          0.0288,
+          0.0816,
+          0.133,
+          0.1116
+        ],
+        "world": 0.1335
+      }
     },
-    "cot_policy": "preserve original <think>...</think> supervision; do not strip or shorten reasoning traces"
+    "augmentation_counts": {
+      "user_json_aug": 2892,
+      "user_logic_aug": 1304,
+      "rec_clean_aug": 19204,
+      "item_compact_aug": 5597,
+      "rec_no_think_aug": 19204,
+      "rec_short_think_aug": 19204,
+      "user_strict_aug": 2892,
+      "user_strict_dual_aug": 3494,
+      "item_route_aug": 5597
+    },
+    "recipes": {
+      "scratch_clean_cot_ep3": "Scratch official-OneReason SFT: original CoT all + 9600 cleaned rec CoT + 6400 rec /no_think direct-final + strict user JSON/route aug + item route aug + compact item CoT aug.",
+      "scratch_clean_cot_guard_ep5": "Scratch official-OneReason SFT: original CoT all + 4800 cleaned rec CoT + 3200 rec /no_think direct-final + strict dual user aug + 3x item-style replay. Lower LR and 5 epochs test longer training without v7 final-only bias.",
+      "v15_cot_light_repair": "v15 continuation: 6400 rec /no_think direct-final + 4800 short rec /think CoT + strict dual user aug + half strict user replay + item route aug + compact item CoT aug."
+    },
+    "cot_policy": "Preserve /think reasoning supervision and do not use v7_final_only as a CoT training base. For /no_think prompts, train pure final answers without generated <think> tags. This is route-specific behavior, not global CoT removal.",
+    "eval_observations": {
+      "v07": "best local score so far: total=0.8978, eval_time≈47.3min; fast final outputs likely help.",
+      "v15": "best CoT-preserving score so far: total=0.8778, eval_time≈70.1min; logs show repeated tokens, JSON shell errors, prompt leakage, and verbose /no_think outputs.",
+      "v19": "best CoT-native continuation so far: total=0.8855, eval_time≈48.1min; user1 and rec4 improved but world dropped.",
+      "v20": "v7 final-only continuation with CoT restore failed as a CoT route: total=0.8527, item fell to 0.1840; do not use v7 as future CoT base.",
+      "v16": "CoT pattern rewrite failed: total=0.7912; logs show malformed user JSON and fragmented recommendation reasoning.",
+      "v18": "low-LR mixed replay from v12 failed: total=0.8340; item/world dropped and rec outputs mixed text/itemic/think tags."
+    }
   }
 }

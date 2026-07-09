@@ -13,6 +13,7 @@ can be recreated from the raw competition jsonl files.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import random
 import re
@@ -56,47 +57,42 @@ RAW_GROUPS = {
     "user": ["懂用户.jsonl"],
 }
 
+ITEMIC_RE = re.compile(r"<\|(?:prod|video|ad|living)_begin\|><s_a_\d+><s_b_\d+><s_c_\d+>")
+
 
 RUNS = [
     {
-        "name": "v11_item_cot_focus_lr2e5",
-        "dataset": "item_cot_focus",
-        "lr": "2.0e-5",
-        "epochs": 1,
-        "warmup": 0.03,
+        "name": "v22_scratch_clean_cot_lr6e6_ep3",
+        "dataset": "scratch_clean_cot_ep3",
+        "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition",
+        "lr": "6.0e-6",
+        "epochs": 3,
+        "warmup": 0.02,
         "scheduler": "cosine",
-        "seed": 202607111,
-        "note": "懂物料专项：keep original CoT, all data + item x4 extra; strengthens itemic token perception.",
+        "seed": 202607221,
+        "note": "Scratch SFT from official OneReason. Clean CoT-balanced long run: original CoT data plus short/clean rec CoT, no-think direct rec route, strict user JSON, and strong item replay. Tests whether 3 epochs at low LR learns stable CoT without v7 final-only bias.",
     },
     {
-        "name": "v12_user_cot_focus_lr15e6",
-        "dataset": "user_cot_focus",
-        "lr": "1.5e-5",
-        "epochs": 1,
-        "warmup": 0.03,
+        "name": "v24_v15_cot_light_repair_lr25e6_ep035",
+        "dataset": "v15_cot_light_repair",
+        "model_path": str((OUTPUT_DIR / "v15_user_logic_json_lr15e6").resolve()),
+        "lr": "2.5e-6",
+        "epochs": 0.35,
+        "warmup": 0.02,
         "scheduler": "cosine",
-        "seed": 202607112,
-        "note": "懂用户专项：keep original CoT, all data + user x5 extra; targets evolution/action and topic-chain reasoning.",
+        "seed": 202607243,
+        "note": "v15 continuation. Small CoT-native repair with strong item replay, strict user JSON, and limited rec fast/short-CoT supervision. Goal: improve v15/v19 while avoiding v19 world loss and without using v7 as a CoT base.",
     },
     {
-        "name": "v13_rec_cot_focus_lr2e5",
-        "dataset": "rec_cot_focus",
-        "lr": "2.0e-5",
-        "epochs": 1,
-        "warmup": 0.03,
+        "name": "v23_scratch_clean_cot_guard_lr3e6_ep5",
+        "dataset": "scratch_clean_cot_guard_ep5",
+        "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition",
+        "lr": "3.0e-6",
+        "epochs": 5,
+        "warmup": 0.02,
         "scheduler": "cosine",
-        "seed": 202607113,
-        "note": "懂推荐专项：keep original CoT, all data + rec x1 extra; tests recommendation-domain specialization.",
-    },
-    {
-        "name": "v14_world_cot_preserve_lr8e6",
-        "dataset": "world_cot_preserve",
-        "lr": "8.0e-6",
-        "epochs": 1,
-        "warmup": 0.05,
-        "scheduler": "linear",
-        "seed": 202607114,
-        "note": "懂世界/保常识专项：keep original CoT, all data only with low LR and linear decay to reduce general-knowledge forgetting.",
+        "seed": 202607232,
+        "note": "Scratch SFT from official OneReason. More conservative 5-epoch CoT run with lower LR, heavier item replay, and lighter rec augmentation. Tests whether 3-5 epoch training helps when update size is controlled.",
     },
 ]
 
@@ -169,20 +165,358 @@ def strip_internal(record: dict) -> dict:
     }
 
 
+def clone_record(record: dict, *, input_text: str | None = None, output_text: str | None = None, variant: str = "") -> dict:
+    cloned = dict(record)
+    if input_text is not None:
+        cloned["input"] = input_text
+    if output_text is not None:
+        cloned["output"] = output_text
+    if variant:
+        cloned["_variant"] = variant
+    return cloned
+
+
+def split_think_output(text: str) -> tuple[str, str]:
+    match = re.search(r"<think>(.*?)</think>\s*(.*)\Z", text or "", flags=re.S)
+    if match:
+        return match.group(1).strip(), match.group(2).strip()
+    return "", (text or "").strip()
+
+
+def empty_think_json_output(value) -> str:
+    payload = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+    return f"<think>\n</think>\n{payload}"
+
+
+def short_think_output(thought: str, final: str) -> str:
+    return f"<think>\n{thought.strip()}\n</think>\n{final.strip()}"
+
+
+def prompt_with_route(input_text: str, route: str) -> str:
+    token = "/no_think" if route == "no_think" else "/think"
+    if "/no_think" in input_text:
+        return input_text.replace("/no_think", token, 1)
+    if "/think" in input_text:
+        return input_text.replace("/think", token, 1)
+    return input_text.rstrip() + token
+
+
+def prompt_route(input_text: str) -> str:
+    if "/no_think" in input_text:
+        return "no_think"
+    if "/think" in input_text:
+        return "think"
+    return "none"
+
+
+def compact_json(value, *, cap_logic_events: bool = False):
+    if isinstance(value, list):
+        return dedupe_json_list(value)
+    if isinstance(value, dict) and cap_logic_events:
+        value = json.loads(json.dumps(value, ensure_ascii=False))
+        logic_chain = value.get("logic_chain")
+        if isinstance(logic_chain, dict) and isinstance(logic_chain.get("events"), list):
+            logic_chain["events"] = logic_chain["events"][:5]
+    return value
+
+
+def final_only_output(record: dict, *, compact_user_json: bool = False, cap_logic_events: bool = False) -> str:
+    _, final = split_think_output(record["output"])
+    if compact_user_json:
+        try:
+            parsed = json.loads(final)
+        except Exception:
+            return final.strip()
+        parsed = compact_json(parsed, cap_logic_events=cap_logic_events)
+        return json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
+    return final.strip()
+
+
+def make_rec_no_think_augments(records: list[dict]) -> list[dict]:
+    augments: list[dict] = []
+    for record in records:
+        final = final_only_output(record)
+        if not final or not ITEMIC_RE.search(final):
+            continue
+        augments.append(
+            clone_record(
+                record,
+                input_text=prompt_with_route(record["input"], "no_think"),
+                output_text=final,
+                variant="rec_no_think_direct_final",
+            )
+        )
+    return augments
+
+
+def rec_target_label(final: str) -> str:
+    if "视频" in final:
+        return "视频"
+    if "广告" in final:
+        return "广告"
+    if "商品" in final:
+        return "商品"
+    if "主播" in final or "直播" in final:
+        return "直播"
+    token = ITEMIC_RE.search(final)
+    return infer_item_domain(token.group(0)) if token else "目标内容"
+
+
+def make_rec_short_think_augments(records: list[dict]) -> list[dict]:
+    augments: list[dict] = []
+    for record in records:
+        final = final_only_output(record)
+        if not final or not ITEMIC_RE.search(final):
+            continue
+        label = rec_target_label(final)
+        thought = (
+            f"先按近期、高频、深度互动和跨域重复信号归纳用户兴趣，再筛掉与历史语义弱相关的候选；"
+            f"最终只输出最可能命中的{label} itemic 结果。"
+        )
+        augments.append(
+            clone_record(
+                record,
+                input_text=prompt_with_route(record["input"], "think"),
+                output_text=short_think_output(thought, final),
+                variant="rec_short_think_final",
+            )
+        )
+    return augments
+
+
+def user_json_payload(record: dict, *, cap_logic_events: bool = False) -> str | None:
+    final = final_only_output(record)
+    try:
+        parsed = json.loads(final)
+    except Exception:
+        return None
+    parsed = compact_json(parsed, cap_logic_events=cap_logic_events)
+    return json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
+
+
+def make_user_route_augments(records: list[dict], *, cap_logic_events: bool = False, add_missing_no_think: bool = False) -> list[dict]:
+    augments: list[dict] = []
+    for record in records:
+        payload = user_json_payload(record, cap_logic_events=cap_logic_events)
+        if payload is None:
+            continue
+        route = prompt_route(record["input"])
+        is_logic = '"logic_chain"' in payload or "logic_chain" in record["input"]
+        if route == "think":
+            thought = "按时间顺序筛选关键交互，抽取兴趣变化和行为转化链路，最终只返回合法 JSON。"
+            output = short_think_output(thought, payload)
+        else:
+            output = payload
+        augments.append(
+            clone_record(
+                record,
+                input_text=strict_user_prompt(record["input"]),
+                output_text=output,
+                variant="user_strict_logic" if is_logic else "user_strict_array",
+            )
+        )
+        if add_missing_no_think and route != "no_think":
+            augments.append(
+                clone_record(
+                    record,
+                    input_text=strict_user_prompt(prompt_with_route(record["input"], "no_think")),
+                    output_text=payload,
+                    variant="user_extra_no_think_logic" if is_logic else "user_extra_no_think_array",
+                )
+            )
+    return augments
+
+
+def make_item_route_augments(records: list[dict]) -> list[dict]:
+    augments: list[dict] = []
+    for record in records:
+        final = final_only_output(record)
+        token_match = ITEMIC_RE.search(final)
+        if not token_match:
+            continue
+        token = token_match.group(0)
+        route = prompt_route(record["input"])
+        if route == "think":
+            domain = infer_item_domain(token)
+            thought = f"提取描述中的核心品类、属性、使用场景和人群，匹配最接近的{domain}语义标识。"
+            output = short_think_output(thought, token)
+            variant = "item_short_think"
+        else:
+            output = token
+            variant = "item_no_think_direct_final"
+        augments.append(clone_record(record, output_text=output, variant=variant))
+    return augments
+
+
+def strict_user_prompt(input_text: str) -> str:
+    note = "\n\n强约束：最终答案必须是一个可被 json.loads 解析的 JSON，不能包含 Markdown、解释、重复键或 JSON 外额外字符。"
+    if "强约束：最终答案必须是一个可被 json.loads 解析的 JSON" in input_text:
+        return input_text
+    if "/no_think" in input_text:
+        return input_text.replace("/no_think", f"{note}/no_think", 1)
+    if "/think" in input_text:
+        return input_text.replace("/think", f"{note}/think", 1)
+    return input_text + note
+
+
+def dedupe_json_list(values: list) -> list:
+    seen = set()
+    deduped = []
+    for item in values:
+        key = json.dumps(item, ensure_ascii=False, sort_keys=True)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+    return deduped
+
+
+def make_user_json_augments(records: list[dict]) -> list[dict]:
+    augments: list[dict] = []
+    for record in records:
+        _, final = split_think_output(record["output"])
+        try:
+            parsed = json.loads(final)
+        except Exception:
+            continue
+        if isinstance(parsed, list):
+            parsed = dedupe_json_list(parsed)
+            variant = "user_array_json_strict"
+        elif isinstance(parsed, dict):
+            variant = "user_logic_json_strict" if "logic_chain" in parsed or "logic_chain" in record["input"] else "user_object_json_strict"
+        else:
+            continue
+        augments.append(
+            clone_record(
+                record,
+                input_text=strict_user_prompt(record["input"]),
+                output_text=empty_think_json_output(parsed),
+                variant=variant,
+            )
+        )
+    return augments
+
+
+def normalize_cot_text(text: str) -> str:
+    text = (text or "").replace("**", "")
+    text = re.sub(r"#+\s*", "", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip(" ：:\n\t")
+
+
+def truncate_text(text: str, limit: int) -> str:
+    text = normalize_cot_text(text)
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    for sep in ["。", "；", ";", "，", ","]:
+        pos = cut.rfind(sep)
+        if pos >= int(limit * 0.55):
+            return cut[: pos + 1]
+    return cut.rstrip() + "..."
+
+
+def extract_stage(text: str, label: str, next_labels: list[str]) -> str:
+    label_pattern = rf"(?:【\s*{re.escape(label)}\s*】|{re.escape(label)}[:：])"
+    start_match = re.search(label_pattern, text)
+    if not start_match:
+        return ""
+    start = start_match.end()
+    end = len(text)
+    for next_label in next_labels:
+        next_pattern = rf"(?:【\s*{re.escape(next_label)}\s*】|{re.escape(next_label)}[:：])"
+        next_match = re.search(next_pattern, text[start:])
+        if next_match:
+            end = min(end, start + next_match.start())
+    return text[start:end]
+
+
+def make_rec_cot_clean_augments(records: list[dict]) -> list[dict]:
+    augments: list[dict] = []
+    for record in records:
+        think, final = split_think_output(record["output"])
+        if not think or not final or not ITEMIC_RE.search(final):
+            continue
+        full = normalize_cot_text(think)
+        interest = extract_stage(think, "兴趣归纳", ["行为模式", "预测总结"])
+        evidence = extract_stage(think, "行为模式", ["预测总结"])
+        summary = extract_stage(think, "预测总结", [])
+        if not interest:
+            interest = full[:700]
+        if not evidence:
+            evidence = full[700:1300] or "重点参考高频、近期、深度互动以及跨域重复出现的语义簇。"
+        if not summary:
+            summary = full[-520:] or "根据近期强兴趣和目标场景，选择最可能产生互动的 itemic token。"
+        cleaned_output = (
+            "<think>\n"
+            f"【兴趣归纳】{truncate_text(interest, 620)}\n"
+            f"【行为证据】{truncate_text(evidence, 520)}\n"
+            f"【预测总结】{truncate_text(summary, 420)}\n"
+            "</think>\n"
+            f"{final}"
+        )
+        augments.append(clone_record(record, output_text=cleaned_output, variant="rec_cot_pattern_clean"))
+    return augments
+
+
+def infer_item_domain(token: str) -> str:
+    if token.startswith("<|prod_begin|>"):
+        return "商品"
+    if token.startswith("<|video_begin|>"):
+        return "视频"
+    if token.startswith("<|ad_begin|>"):
+        return "广告"
+    if token.startswith("<|living_begin|>"):
+        return "直播"
+    return "内容"
+
+
+def make_item_compact_cot_augments(records: list[dict]) -> list[dict]:
+    augments: list[dict] = []
+    for record in records:
+        _, final = split_think_output(record["output"])
+        token_match = ITEMIC_RE.search(final)
+        if not token_match:
+            continue
+        token = token_match.group(0)
+        domain = infer_item_domain(token)
+        cleaned_output = (
+            "<think>\n"
+            f"提取描述中的核心品类、关键属性、使用场景、风格和目标人群，匹配最接近的{domain}语义标识。\n"
+            "</think>\n"
+            f"{token}"
+        )
+        augments.append(clone_record(record, output_text=cleaned_output, variant="item_compact_cot"))
+    return augments
+
+
+def sample_records(records: list[dict], count: int, seed: int) -> list[dict]:
+    if count >= len(records):
+        return list(records)
+    rng = random.Random(seed)
+    return rng.sample(records, count)
+
+
 def write_dataset(name: str, records: list[dict], seed: int) -> dict:
     rng = random.Random(seed)
     shuffled = list(records)
     rng.shuffle(shuffled)
     path = DATA_DIR / f"{name}.jsonl"
+    digest = hashlib.sha256()
     with path.open("w", encoding="utf-8") as fp:
         for rec in shuffled:
-            fp.write(json.dumps(strip_internal(rec), ensure_ascii=False) + "\n")
+            line = json.dumps(strip_internal(rec), ensure_ascii=False) + "\n"
+            digest.update(line.encode("utf-8"))
+            fp.write(line)
     groups = Counter(rec.get("_group", "unknown") for rec in shuffled)
+    variants = Counter(rec.get("_variant", "raw") for rec in shuffled)
     return {
         "name": name,
         "path": str(path.resolve()),
         "records": len(shuffled),
         "groups": dict(groups),
+        "variants": dict(variants),
+        "sha256": digest.hexdigest(),
         "seed": seed,
     }
 
@@ -191,12 +525,43 @@ def prepare_datasets() -> dict[str, dict]:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     grouped = load_raw_records()
     all_records = grouped["rec"] + grouped["item"] + grouped["user"]
+    user_json_aug = make_user_json_augments(grouped["user"])
+    user_logic_aug = [rec for rec in user_json_aug if rec.get("_variant") == "user_logic_json_strict"]
+    rec_clean_aug = make_rec_cot_clean_augments(grouped["rec"])
+    item_compact_aug = make_item_compact_cot_augments(grouped["item"])
+    rec_no_think_aug = make_rec_no_think_augments(grouped["rec"])
+    rec_short_think_aug = make_rec_short_think_augments(grouped["rec"])
+    user_strict_aug = make_user_route_augments(grouped["user"], cap_logic_events=True, add_missing_no_think=False)
+    user_strict_dual_aug = make_user_route_augments(grouped["user"], cap_logic_events=True, add_missing_no_think=True)
+    item_route_aug = make_item_route_augments(grouped["item"])
 
     variants = {
-        "item_cot_focus": all_records + grouped["item"] * 4,
-        "user_cot_focus": all_records + grouped["user"] * 5,
-        "rec_cot_focus": all_records + grouped["rec"],
-        "world_cot_preserve": all_records,
+        "scratch_clean_cot_ep3": (
+            all_records
+            + sample_records(rec_clean_aug, 9600, 202607221)
+            + sample_records(rec_no_think_aug, 6400, 202607222)
+            + user_json_aug
+            + user_strict_dual_aug
+            + item_route_aug
+            + item_compact_aug
+        ),
+        "scratch_clean_cot_guard_ep5": (
+            all_records
+            + sample_records(rec_clean_aug, 4800, 202607231)
+            + sample_records(rec_no_think_aug, 3200, 202607232)
+            + user_strict_dual_aug
+            + item_route_aug
+            + item_compact_aug
+            + sample_records(item_route_aug, 5597, 202607233)
+        ),
+        "v15_cot_light_repair": (
+            sample_records(rec_no_think_aug, 6400, 202607241)
+            + sample_records(rec_short_think_aug, 4800, 202607242)
+            + user_strict_dual_aug
+            + sample_records(user_strict_aug, 1446, 202607243)
+            + item_route_aug
+            + item_compact_aug
+        ),
     }
     manifest = {
         name: write_dataset(name, records, seed=202607110 + i)
@@ -218,13 +583,37 @@ def prepare_datasets() -> dict[str, dict]:
             "rec": [0.0672, 0.1360, 0.1428, 0.1044],
             "world": 0.1357,
         },
-        "recipes": {
-            "item_cot_focus": "original CoT all + item x4 extra",
-            "user_cot_focus": "original CoT all + user x5 extra",
-            "rec_cot_focus": "original CoT all + rec x1 extra",
-            "world_cot_preserve": "original CoT all, lower LR in config to reduce common-sense forgetting",
+        "v11_v14_scores": {
+            "v11": {"total": 0.8545, "item": 0.2146, "user": [0.0301, 0.0416], "rec": [0.0672, 0.1156, 0.1386, 0.1089], "world": 0.1379},
+            "v12": {"total": 0.8755, "item": 0.2146, "user": [0.0780, 0.0412], "rec": [0.0672, 0.1088, 0.1176, 0.1098], "world": 0.1383},
+            "v13": {"total": 0.7743, "item": 0.1533, "user": [0.0447, 0.0431], "rec": [0.0480, 0.1020, 0.1386, 0.1071], "world": 0.1375},
+            "v14": {"total": 0.6743, "item": 0.1533, "user": [0.0036, 0.0290], "rec": [0.0288, 0.0816, 0.1330, 0.1116], "world": 0.1335},
         },
-        "cot_policy": "preserve original <think>...</think> supervision; do not strip or shorten reasoning traces",
+        "augmentation_counts": {
+            "user_json_aug": len(user_json_aug),
+            "user_logic_aug": len(user_logic_aug),
+            "rec_clean_aug": len(rec_clean_aug),
+            "item_compact_aug": len(item_compact_aug),
+            "rec_no_think_aug": len(rec_no_think_aug),
+            "rec_short_think_aug": len(rec_short_think_aug),
+            "user_strict_aug": len(user_strict_aug),
+            "user_strict_dual_aug": len(user_strict_dual_aug),
+            "item_route_aug": len(item_route_aug),
+        },
+        "recipes": {
+            "scratch_clean_cot_ep3": "Scratch official-OneReason SFT: original CoT all + 9600 cleaned rec CoT + 6400 rec /no_think direct-final + strict user JSON/route aug + item route aug + compact item CoT aug.",
+            "scratch_clean_cot_guard_ep5": "Scratch official-OneReason SFT: original CoT all + 4800 cleaned rec CoT + 3200 rec /no_think direct-final + strict dual user aug + 3x item-style replay. Lower LR and 5 epochs test longer training without v7 final-only bias.",
+            "v15_cot_light_repair": "v15 continuation: 6400 rec /no_think direct-final + 4800 short rec /think CoT + strict dual user aug + half strict user replay + item route aug + compact item CoT aug.",
+        },
+        "cot_policy": "Preserve /think reasoning supervision and do not use v7_final_only as a CoT training base. For /no_think prompts, train pure final answers without generated <think> tags. This is route-specific behavior, not global CoT removal.",
+        "eval_observations": {
+            "v07": "best local score so far: total=0.8978, eval_time≈47.3min; fast final outputs likely help.",
+            "v15": "best CoT-preserving score so far: total=0.8778, eval_time≈70.1min; logs show repeated tokens, JSON shell errors, prompt leakage, and verbose /no_think outputs.",
+            "v19": "best CoT-native continuation so far: total=0.8855, eval_time≈48.1min; user1 and rec4 improved but world dropped.",
+            "v20": "v7 final-only continuation with CoT restore failed as a CoT route: total=0.8527, item fell to 0.1840; do not use v7 as future CoT base.",
+            "v16": "CoT pattern rewrite failed: total=0.7912; logs show malformed user JSON and fragmented recommendation reasoning.",
+            "v18": "low-LR mixed replay from v12 failed: total=0.8340; item/world dropped and rec outputs mixed text/itemic/think tags.",
+        },
     }
     (DATA_DIR / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2),
@@ -254,8 +643,9 @@ def update_dataset_info(manifest: dict[str, dict]) -> None:
 def yaml_for(run: dict) -> str:
     out = (OUTPUT_DIR / run["name"]).resolve()
     dataset = f"exp_{run['dataset']}"
+    model_path = run.get("model_path", "OpenOneRec/OneReason-0.8B-pretrain-competition")
     return f"""### model
-model_name_or_path: OpenOneRec/OneReason-0.8B-pretrain-competition
+model_name_or_path: {model_path}
 trust_remote_code: true
 flash_attn: fa2
 
@@ -309,6 +699,33 @@ def prepare_configs() -> None:
     (EXP / "runs.json").write_text(json.dumps(RUNS, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def write_experiment_recipes(manifest: dict[str, dict]) -> None:
+    script_sha = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    for run in RUNS:
+        out = OUTPUT_DIR / run["name"]
+        out.mkdir(parents=True, exist_ok=True)
+        recipe = {
+            "created_at": stamp(),
+            "run": run,
+            "dataset_manifest": manifest.get(run["dataset"], {}),
+            "dataset_recipe": manifest.get("_notes", {}).get("recipes", {}).get(run["dataset"], ""),
+            "cot_policy": manifest.get("_notes", {}).get("cot_policy", ""),
+            "raw_counts": manifest.get("_notes", {}).get("raw_counts", {}),
+            "eval_observations": manifest.get("_notes", {}).get("eval_observations", {}),
+            "script": str(Path(__file__).resolve()),
+            "script_sha256": script_sha,
+            "deadline": deadline_label(),
+            "reproduce": {
+                "prepare_command": "EXPERIMENT_PREPARE_ONLY=1 python3 experiments/run_experiments.py",
+                "train_command": f"CUDA_VISIBLE_DEVICES=<gpu> bash -lc 'source {VENV}/bin/activate && llamafactory-cli train {run['config']}'",
+            },
+        }
+        (out / "experiment_recipe.json").write_text(
+            json.dumps(recipe, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+
 def train_command(config: str) -> str:
     return (
         f"source {VENV}/bin/activate && "
@@ -354,6 +771,7 @@ def parse_result(run: dict) -> dict:
     result = {
         "name": run["name"],
         "dataset": run["dataset"],
+        "model_path": run.get("model_path", "OpenOneRec/OneReason-0.8B-pretrain-competition"),
         "lr": run["lr"],
         "epochs": run["epochs"],
         "scheduler": run["scheduler"],
@@ -408,7 +826,10 @@ def write_summary(results: list[dict], manifest: dict) -> None:
     for name, meta in manifest.items():
         if name.startswith("_"):
             continue
-        dataset_lines.append(f"- `{name}`: {meta['records']} records, groups={meta['groups']}")
+        dataset_lines.append(
+            f"- `{name}`: {meta['records']} records, groups={meta['groups']}, "
+            f"variants={meta.get('variants', {})}, sha256={meta.get('sha256', '')}"
+        )
 
     md = [
         "# LLM4Rec Experiment Summary",
@@ -423,6 +844,9 @@ def write_summary(results: list[dict], manifest: dict) -> None:
         "| version | dataset | lr | epochs | scheduler | train_loss | last_logged_loss | runtime | status |",
         "|---|---:|---:|---:|---|---:|---:|---:|---|",
         *rows,
+        "",
+        "## Run Notes",
+        *[f"- `{item.get('name')}`: {item.get('note', '')}" for item in results],
         "",
         "## Notes",
         "- Ranking by train loss is only a rough sanity signal because no held-out leaderboard metric is available locally.",
@@ -441,9 +865,11 @@ def write_summary(results: list[dict], manifest: dict) -> None:
     for item in results:
         append(
             TOP_LOG,
-            "- {name}: dataset={dataset}, lr={lr}, epochs={epochs}, scheduler={scheduler}, "
-            "train_loss={loss}, last_logged_loss={last}, runtime={runtime}, output={out}\n".format(
+            "- {name}: base={base}, dataset={dataset}, lr={lr}, epochs={epochs}, scheduler={scheduler}, "
+            "train_loss={loss}, last_logged_loss={last}, runtime={runtime}, output={out}\n"
+            "  note={note}\n".format(
                 name=item.get("name"),
+                base=item.get("model_path"),
                 dataset=item.get("dataset"),
                 lr=item.get("lr"),
                 epochs=item.get("epochs"),
@@ -452,6 +878,7 @@ def write_summary(results: list[dict], manifest: dict) -> None:
                 last=item.get("last_logged_loss"),
                 runtime=item.get("train_runtime"),
                 out=item.get("output_dir"),
+                note=item.get("note"),
             ),
         )
 
@@ -586,6 +1013,7 @@ def main() -> int:
     manifest = prepare_datasets()
     update_dataset_info(manifest)
     prepare_configs()
+    write_experiment_recipes(manifest)
 
     status_path = LOG_DIR / "supervisor_status.jsonl"
     append(
@@ -603,6 +1031,23 @@ def main() -> int:
         )
         + "\n",
     )
+
+    if os.environ.get("EXPERIMENT_PREPARE_ONLY", "").strip() == "1":
+        append(
+            status_path,
+            json.dumps(
+                {
+                    "time": stamp(),
+                    "event": "prepare_only_exit",
+                    "manifest": str((DATA_DIR / "manifest.json").resolve()),
+                    "configs": str(CONFIG_DIR.resolve()),
+                },
+                ensure_ascii=False,
+            )
+            + "\n",
+        )
+        append(TOP_LOG, f"[{stamp()}] prepare-only completed; no training launched.\n")
+        return 0
 
     queue = list(RUNS)
     results: list[dict] = []

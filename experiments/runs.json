@@ -1,46 +1,38 @@
 [
   {
-    "name": "v11_item_cot_focus_lr2e5",
-    "dataset": "item_cot_focus",
-    "lr": "2.0e-5",
-    "epochs": 1,
-    "warmup": 0.03,
+    "name": "v22_scratch_clean_cot_lr6e6_ep3",
+    "dataset": "scratch_clean_cot_ep3",
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition",
+    "lr": "6.0e-6",
+    "epochs": 3,
+    "warmup": 0.02,
     "scheduler": "cosine",
-    "seed": 202607111,
-    "note": "懂物料专项：keep original CoT, all data + item x4 extra; strengthens itemic token perception.",
-    "config": "/home/ll/llm4rec/experiments/configs/v11_item_cot_focus_lr2e5.yaml"
+    "seed": 202607221,
+    "note": "Scratch SFT from official OneReason. Clean CoT-balanced long run: original CoT data plus short/clean rec CoT, no-think direct rec route, strict user JSON, and strong item replay. Tests whether 3 epochs at low LR learns stable CoT without v7 final-only bias.",
+    "config": "/home/ll/llm4rec/experiments/configs/v22_scratch_clean_cot_lr6e6_ep3.yaml"
   },
   {
-    "name": "v12_user_cot_focus_lr15e6",
-    "dataset": "user_cot_focus",
-    "lr": "1.5e-5",
-    "epochs": 1,
-    "warmup": 0.03,
+    "name": "v24_v15_cot_light_repair_lr25e6_ep035",
+    "dataset": "v15_cot_light_repair",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v15_user_logic_json_lr15e6",
+    "lr": "2.5e-6",
+    "epochs": 0.35,
+    "warmup": 0.02,
     "scheduler": "cosine",
-    "seed": 202607112,
-    "note": "懂用户专项：keep original CoT, all data + user x5 extra; targets evolution/action and topic-chain reasoning.",
-    "config": "/home/ll/llm4rec/experiments/configs/v12_user_cot_focus_lr15e6.yaml"
+    "seed": 202607243,
+    "note": "v15 continuation. Small CoT-native repair with strong item replay, strict user JSON, and limited rec fast/short-CoT supervision. Goal: improve v15/v19 while avoiding v19 world loss and without using v7 as a CoT base.",
+    "config": "/home/ll/llm4rec/experiments/configs/v24_v15_cot_light_repair_lr25e6_ep035.yaml"
   },
   {
-    "name": "v13_rec_cot_focus_lr2e5",
-    "dataset": "rec_cot_focus",
-    "lr": "2.0e-5",
-    "epochs": 1,
-    "warmup": 0.03,
+    "name": "v23_scratch_clean_cot_guard_lr3e6_ep5",
+    "dataset": "scratch_clean_cot_guard_ep5",
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition",
+    "lr": "3.0e-6",
+    "epochs": 5,
+    "warmup": 0.02,
     "scheduler": "cosine",
-    "seed": 202607113,
-    "note": "懂推荐专项：keep original CoT, all data + rec x1 extra; tests recommendation-domain specialization.",
-    "config": "/home/ll/llm4rec/experiments/configs/v13_rec_cot_focus_lr2e5.yaml"
-  },
-  {
-    "name": "v14_world_cot_preserve_lr8e6",
-    "dataset": "world_cot_preserve",
-    "lr": "8.0e-6",
-    "epochs": 1,
-    "warmup": 0.05,
-    "scheduler": "linear",
-    "seed": 202607114,
-    "note": "懂世界/保常识专项：keep original CoT, all data only with low LR and linear decay to reduce general-knowledge forgetting.",
-    "config": "/home/ll/llm4rec/experiments/configs/v14_world_cot_preserve_lr8e6.yaml"
+    "seed": 202607232,
+    "note": "Scratch SFT from official OneReason. More conservative 5-epoch CoT run with lower LR, heavier item replay, and lighter rec augmentation. Tests whether 3-5 epoch training helps when update size is controlled.",
+    "config": "/home/ll/llm4rec/experiments/configs/v23_scratch_clean_cot_guard_lr3e6_ep5.yaml"
   }
 ]

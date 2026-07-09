@@ -27,6 +27,8 @@ demo/output/
 experiments/data/*.jsonl
 experiments/outputs/
 experiments/logs/supervisor_status.jsonl
+experiments/logs/*supervisor*.out
+experiments/logs/*supervisor*.pid
 experiments/**/data/*.jsonl
 experiments/**/outputs/
 experiments/**/__pycache__/

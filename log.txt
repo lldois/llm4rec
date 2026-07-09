@@ -58,3 +58,107 @@ run baseline
 - v12_user_cot_focus_lr15e6: dataset=user_cot_focus, lr=1.5e-5, epochs=1, scheduler=cosine, train_loss=1.4709593629888476, last_logged_loss=1.3635743141174317, runtime=8039.0159, output=/home/ll/llm4rec/experiments/outputs/v12_user_cot_focus_lr15e6
 - v13_rec_cot_focus_lr2e5: dataset=rec_cot_focus, lr=2.0e-5, epochs=1, scheduler=cosine, train_loss=1.470360949480975, last_logged_loss=1.4335641860961914, runtime=5409.9531, output=/home/ll/llm4rec/experiments/outputs/v13_rec_cot_focus_lr2e5
 - v14_world_cot_preserve_lr8e6: dataset=world_cot_preserve, lr=8.0e-6, epochs=1, scheduler=linear, train_loss=1.8377702086790462, last_logged_loss=1.6935569763183593, runtime=3207.2413, output=/home/ll/llm4rec/experiments/outputs/v14_world_cot_preserve_lr8e6
+
+
+[2026-07-08 01:07:04] start experiment preparation; deadline=2026-07-08 09:00:00 +0800
+[2026-07-08 01:07:11] prepare-only completed; no training launched.
+
+
+[2026-07-08 01:08:12] start experiment preparation; deadline=2026-07-08 09:00:00 +0800
+
+
+[2026-07-08 04:08:21] experiments summary
+- summary: /home/ll/llm4rec/experiments/logs/summary.md
+- configs: /home/ll/llm4rec/experiments/configs
+- outputs: /home/ll/llm4rec/experiments/outputs
+- deadline enforced: 2026-07-08 09:00:00 +0800
+- v15_user_logic_json_lr15e6: dataset=user_logic_json, lr=1.5e-5, epochs=1, scheduler=cosine, train_loss=1.4887716360433154, last_logged_loss=1.3967268943786622, runtime=7587.3157, output=/home/ll/llm4rec/experiments/outputs/v15_user_logic_json_lr15e6
+  note=懂用户专项：preserve CoT, replay user data and add strict json.loads-compatible JSON/logic_chain variants to reduce malformed outputs.
+- v16_rec_cot_pattern_clean_lr15e6: dataset=rec_cot_pattern_clean, lr=1.5e-5, epochs=1, scheduler=cosine, train_loss=1.559677630303854, last_logged_loss=1.4296034812927245, runtime=5251.4031, output=/home/ll/llm4rec/experiments/outputs/v16_rec_cot_pattern_clean_lr15e6
+  note=懂推荐专项：preserve CoT but normalize recommendation reasoning into concise interest/evidence/summary stages; final itemic answer unchanged.
+- v17_item_caption_cot_lr13e6: dataset=item_caption_cot, lr=1.3e-5, epochs=1, scheduler=cosine, train_loss=1.6924350921143876, last_logged_loss=1.5355438232421874, runtime=3361.2318, output=/home/ll/llm4rec/experiments/outputs/v17_item_caption_cot_lr13e6
+  note=懂物料专项：preserve CoT, add compact item-caption reasoning variants plus one item replay; tests whether itemic grounding can move beyond 0.2146.
+- v18_v12_unify_replay_lr5e6_ep05: dataset=v12_unify_replay, lr=5.0e-6, epochs=0.5, scheduler=cosine, train_loss=1.5080752087311007, last_logged_loss=1.5114261627197265, runtime=2339.7979, output=/home/ll/llm4rec/experiments/outputs/v18_v12_unify_replay_lr5e6_ep05
+  note=可提交候选：continue from v12 with low-LR mixed replay of strict user JSON, clean rec CoT, and compact item CoT while preserving reasoning supervision.
+
+
+[2026-07-08 23:58:31] start experiment preparation; deadline=2026-07-09 09:00:00 +0800
+[2026-07-08 23:58:38] prepare-only completed; no training launched.
+
+
+[2026-07-08 23:59:37] start experiment preparation; deadline=2026-07-09 09:00:00 +0800
+[2026-07-08 23:59:44] prepare-only completed; no training launched.
+
+
+[2026-07-09 00:00:11] start experiment preparation; deadline=2026-07-09 09:00:00 +0800
+[2026-07-09 00:00:19] prepare-only completed; no training launched.
+
+
+[2026-07-09 00:00:47] start experiment preparation; deadline=2026-07-09 09:00:00 +0800
+
+
+[2026-07-09 01:08:51] experiments summary
+- summary: /home/ll/llm4rec/experiments/logs/summary.md
+- configs: /home/ll/llm4rec/experiments/configs
+- outputs: /home/ll/llm4rec/experiments/outputs
+- deadline enforced: none
+- v19_v15_dualmode_fast_lr5e6_ep055: base=/home/ll/llm4rec/experiments/outputs/v15_user_logic_json_lr15e6, dataset=v15_dualmode_fast, lr=5.0e-6, epochs=0.55, scheduler=cosine, train_loss=0.928558009090247, last_logged_loss=0.7682960510253907, runtime=1707.0161, output=/home/ll/llm4rec/experiments/outputs/v19_v15_dualmode_fast_lr5e6_ep055
+  note=v15 continuation. Dual-mode fast correction: add rec /no_think direct-final supervision, short stable rec /think CoT, strict user JSON replay, and item replay. Goal: keep CoT route while reducing verbose/invalid generation time.
+- v20_v7_cot_restore_dualmode_lr3e6_ep045: base=/home/ll/llm4rec/experiments/outputs/v07_final_only_lr2e5, dataset=v7_cot_restore_dualmode, lr=3.0e-6, epochs=0.45, scheduler=cosine, train_loss=1.6410911712549665, last_logged_loss=1.0497023582458496, runtime=1547.0433, output=/home/ll/llm4rec/experiments/outputs/v20_v7_cot_restore_dualmode_lr3e6_ep045
+  note=v7 continuation. Restore acceptable short CoT on /think while preserving v7's fast direct itemic behavior on /no_think. Highest-upside submit candidate if it keeps v7 speed and gains reasoning-route robustness.
+- v21_v15_user_repair_rec_fast_lr4e6_ep055: base=/home/ll/llm4rec/experiments/outputs/v15_user_logic_json_lr15e6, dataset=v15_user_repair_rec_fast, lr=4.0e-6, epochs=0.55, scheduler=cosine, train_loss=1.0272459856910852, last_logged_loss=0.8511994361877442, runtime=2147.0331, output=/home/ll/llm4rec/experiments/outputs/v21_v15_user_repair_rec_fast_lr4e6_ep055
+  note=v15 continuation. User JSON/logic-chain repair plus rec fast-route supervision. Goal: raise 懂用户 without losing v15 item score or rec speed.
+
+
+[2026-07-09 01:09:19] experiments summary
+- summary: /home/ll/llm4rec/experiments/logs/summary.md
+- configs: /home/ll/llm4rec/experiments/configs
+- outputs: /home/ll/llm4rec/experiments/outputs
+- deadline enforced: 2026-07-09 09:00:00 +0800
+- v19_v15_dualmode_fast_lr5e6_ep055: base=/home/ll/llm4rec/experiments/outputs/v15_user_logic_json_lr15e6, dataset=v15_dualmode_fast, lr=5.0e-6, epochs=0.55, scheduler=cosine, train_loss=0.928558009090247, last_logged_loss=0.7682960510253907, runtime=1707.0161, output=/home/ll/llm4rec/experiments/outputs/v19_v15_dualmode_fast_lr5e6_ep055
+  note=v15 continuation. Dual-mode fast correction: add rec /no_think direct-final supervision, short stable rec /think CoT, strict user JSON replay, and item replay. Goal: keep CoT route while reducing verbose/invalid generation time.
+- v20_v7_cot_restore_dualmode_lr3e6_ep045: base=/home/ll/llm4rec/experiments/outputs/v07_final_only_lr2e5, dataset=v7_cot_restore_dualmode, lr=3.0e-6, epochs=0.45, scheduler=cosine, train_loss=1.6410911712549665, last_logged_loss=1.0497023582458496, runtime=1547.0433, output=/home/ll/llm4rec/experiments/outputs/v20_v7_cot_restore_dualmode_lr3e6_ep045
+  note=v7 continuation. Restore acceptable short CoT on /think while preserving v7's fast direct itemic behavior on /no_think. Highest-upside submit candidate if it keeps v7 speed and gains reasoning-route robustness.
+- v21_v15_user_repair_rec_fast_lr4e6_ep055: base=/home/ll/llm4rec/experiments/outputs/v15_user_logic_json_lr15e6, dataset=v15_user_repair_rec_fast, lr=4.0e-6, epochs=0.55, scheduler=cosine, train_loss=1.0272459856910852, last_logged_loss=0.8511994361877442, runtime=2147.0331, output=/home/ll/llm4rec/experiments/outputs/v21_v15_user_repair_rec_fast_lr4e6_ep055
+  note=v15 continuation. User JSON/logic-chain repair plus rec fast-route supervision. Goal: raise 懂用户 without losing v15 item score or rec speed.
+
+
+[2026-07-10 00:28:49] eval analysis for v19-v21
+- scores:
+  - v7 current best: total=0.8978, item=0.2146, user=0.0656/0.0315, rec=0.0672/0.1360/0.1428/0.1044, world=0.1357, eval_time=47.29min.
+  - v19: total=0.8855, item=0.2146, user=0.0855/0.0337, rec=0.0768/0.1020/0.1344/0.1143, world=0.1242, eval_time=48.11min.
+  - v20: total=0.8527, item=0.1840, user=0.0495/0.0333, rec=0.0672/0.1462/0.1386/0.0990, world=0.1349, eval_time=67.07min.
+  - v21: total=0.8800, item=0.2146, user=0.0881/0.0347, rec=0.0576/0.1122/0.1358/0.1098, world=0.1271, eval_time=47.61min.
+- main conclusions:
+  - v19 is the best new model but still below v7. It confirms dual-mode fast training can recover v7-like eval time and improve user1/live-ish rec, but it loses too much world/common-sense and product-ish rec.
+  - v21 reaches the best user1 observed so far, so user repair is real, but the stronger user mix hurts recommendation and world. It is an experiment signal, not a submit candidate.
+  - v20 is useful as a diagnostic: v7 continuation plus CoT restore gives the best rec2/product-ish score, but insufficient item/world/user protection collapses item back to baseline and creates repeated itemic generations.
+  - Speed is a useful proxy only when format is also correct. v19/v21 are fast because repeated-token blocks are greatly reduced, but fast wrong common-sense answers still lose world score.
+  - The official PDF says recommendation evaluation merges thinking and non-thinking routes into a 64 item-id pool, so future work should preserve CoT and make it short/stable rather than remove it.
+- log-level observations:
+  - v15 had extreme repeated itemic blocks (max duplicate token count around 147); v19 reduces this to about 5 and v21 has no block above 4, explaining the runtime drop from 70min to 48min.
+  - v20 still has repeated itemic blocks (max around 28) and a visible common-sense/action long tail, explaining the 67min eval despite starting from fast v7.
+  - User outputs still leak prompt/example text and malformed JSON/logic_chain content, especially on logic-chain style tasks; this limits user2 even when user1 rises.
+  - Common-sense examples often output a parseable letter with contradictory reasoning or option-letter/content mismatch. v19/v21 made this worse than v7/v12/v16.
+- next experiment direction:
+  - Best immediate submit remains v7 unless a new model beats it.
+  - Next high-upside route should start from v7 with very small LR/epoch, much stronger item replay, a small strict user repair set, and some common-sense/general replay; aim to gain user without losing v7 item/world/rec.
+  - Secondary route: start from v19 and recover world plus rec2/product using low-LR replay/distillation from v7/v20/v16 signals.
+
+
+[2026-07-10 00:55:00] correction on CoT experiment base selection
+- v7_final_only is a leaderboard fallback, not a proper base for future CoT-preserving experiments. Continuing from a final-only/no-CoT model and trying to restore reasoning is directionally wrong for this competition goal.
+- v20 already demonstrated this failure mode: starting from v7 and adding CoT-style data did not reliably restore reasoning; it hurt item/user and became slow.
+- Future CoT-preserving experiments should start from CoT-native checkpoints such as v15 or v12, and use original/short CoT replay plus strict format repair. v7 should be used only as a score reference or emergency submit candidate.
+- Remove the previous "next high-upside route should start from v7" recommendation from active planning.
+
+
+[2026-07-10 00:59:35] start experiment preparation; deadline=2026-07-10 09:00:00 +0800
+[2026-07-10 00:59:42] prepare-only completed; no training launched.
+
+
+[2026-07-10 01:00:25] start experiment preparation; deadline=2026-07-10 09:00:00 +0800
+[2026-07-10 01:00:34] prepare-only completed; no training launched.
+
+
+[2026-07-10 01:00:41] start experiment preparation; deadline=2026-07-10 09:00:00 +0800
