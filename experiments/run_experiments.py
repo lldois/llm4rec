@@ -62,37 +62,37 @@ ITEMIC_RE = re.compile(r"<\|(?:prod|video|ad|living)_begin\|><s_a_\d+><s_b_\d+><
 
 RUNS = [
     {
-        "name": "v22_scratch_clean_cot_lr6e6_ep3",
-        "dataset": "scratch_clean_cot_ep3",
-        "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition",
-        "lr": "6.0e-6",
-        "epochs": 3,
+        "name": "v25_v19_product_world_guard_lr18e6_ep028",
+        "dataset": "v19_product_world_guard",
+        "model_path": str((OUTPUT_DIR / "v19_v15_dualmode_fast_lr5e6_ep055").resolve()),
+        "lr": "1.8e-6",
+        "epochs": 0.28,
         "warmup": 0.02,
         "scheduler": "cosine",
-        "seed": 202607221,
-        "note": "Scratch SFT from official OneReason. Clean CoT-balanced long run: original CoT data plus short/clean rec CoT, no-think direct rec route, strict user JSON, and strong item replay. Tests whether 3 epochs at low LR learns stable CoT without v7 final-only bias.",
+        "seed": 202607251,
+        "note": "v19 continuation. Ultra-light product-rec repair with item replay and small user guard. Goal: keep v19 fast/item/user1 behavior while recovering product recommendation and avoiding further world-score erosion.",
     },
     {
-        "name": "v24_v15_cot_light_repair_lr25e6_ep035",
-        "dataset": "v15_cot_light_repair",
-        "model_path": str((OUTPUT_DIR / "v15_user_logic_json_lr15e6").resolve()),
-        "lr": "2.5e-6",
-        "epochs": 0.35,
+        "name": "v26_v21_product_rec_rebalance_lr22e6_ep032",
+        "dataset": "v21_product_rec_rebalance",
+        "model_path": str((OUTPUT_DIR / "v21_v15_user_repair_rec_fast_lr4e6_ep055").resolve()),
+        "lr": "2.2e-6",
+        "epochs": 0.32,
         "warmup": 0.02,
         "scheduler": "cosine",
-        "seed": 202607243,
-        "note": "v15 continuation. Small CoT-native repair with strong item replay, strict user JSON, and limited rec fast/short-CoT supervision. Goal: improve v15/v19 while avoiding v19 world loss and without using v7 as a CoT base.",
+        "seed": 202607261,
+        "note": "v21 continuation. Rec rebalance from the best user1 checkpoint: heavier product/video rec route supervision, item replay, and only light user replay. Goal: preserve user1 while raising rec1/rec2.",
     },
     {
-        "name": "v23_scratch_clean_cot_guard_lr3e6_ep5",
-        "dataset": "scratch_clean_cot_guard_ep5",
-        "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition",
-        "lr": "3.0e-6",
-        "epochs": 5,
+        "name": "v27_v12_product_ad_rec_lite_lr16e6_ep03",
+        "dataset": "v12_product_ad_rec_lite",
+        "model_path": str((OUTPUT_DIR / "v12_user_cot_focus_lr15e6").resolve()),
+        "lr": "1.6e-6",
+        "epochs": 0.30,
         "warmup": 0.02,
         "scheduler": "cosine",
-        "seed": 202607232,
-        "note": "Scratch SFT from official OneReason. More conservative 5-epoch CoT run with lower LR, heavier item replay, and lighter rec augmentation. Tests whether 3-5 epoch training helps when update size is controlled.",
+        "seed": 202607271,
+        "note": "v12 continuation. Tiny product/ad recommendation repair from the strongest user2/world CoT checkpoint. Goal: test whether v12 can gain rec2/rec3 without losing its user2 and world advantages.",
     },
 ]
 
@@ -497,6 +497,17 @@ def sample_records(records: list[dict], count: int, seed: int) -> list[dict]:
     return rng.sample(records, count)
 
 
+def itemic_domain(record: dict) -> str:
+    final = final_only_output(record)
+    token_match = ITEMIC_RE.search(final)
+    return infer_item_domain(token_match.group(0)) if token_match else ""
+
+
+def sample_domain(records: list[dict], domains: set[str], count: int, seed: int) -> list[dict]:
+    filtered = [record for record in records if itemic_domain(record) in domains]
+    return sample_records(filtered, count, seed)
+
+
 def write_dataset(name: str, records: list[dict], seed: int) -> dict:
     rng = random.Random(seed)
     shuffled = list(records)
@@ -536,31 +547,34 @@ def prepare_datasets() -> dict[str, dict]:
     item_route_aug = make_item_route_augments(grouped["item"])
 
     variants = {
-        "scratch_clean_cot_ep3": (
-            all_records
-            + sample_records(rec_clean_aug, 9600, 202607221)
-            + sample_records(rec_no_think_aug, 6400, 202607222)
-            + user_json_aug
-            + user_strict_dual_aug
+        "v19_product_world_guard": (
+            sample_records(rec_no_think_aug, 4800, 202607251)
+            + sample_records(rec_short_think_aug, 3200, 202607252)
+            + sample_domain(rec_no_think_aug, {"商品"}, 6400, 202607253)
+            + sample_domain(rec_short_think_aug, {"商品"}, 3200, 202607254)
+            + sample_records(rec_clean_aug, 2400, 202607255)
             + item_route_aug
             + item_compact_aug
+            + sample_records(user_strict_dual_aug, 3200, 202607256)
         ),
-        "scratch_clean_cot_guard_ep5": (
-            all_records
-            + sample_records(rec_clean_aug, 4800, 202607231)
-            + sample_records(rec_no_think_aug, 3200, 202607232)
-            + user_strict_dual_aug
+        "v21_product_rec_rebalance": (
+            sample_records(rec_no_think_aug, 6400, 202607261)
+            + sample_records(rec_short_think_aug, 4800, 202607262)
+            + sample_domain(rec_no_think_aug, {"商品", "视频"}, 8000, 202607263)
+            + sample_domain(rec_short_think_aug, {"商品", "视频"}, 4800, 202607264)
             + item_route_aug
             + item_compact_aug
-            + sample_records(item_route_aug, 5597, 202607233)
+            + sample_records(user_strict_dual_aug, 2400, 202607265)
         ),
-        "v15_cot_light_repair": (
-            sample_records(rec_no_think_aug, 6400, 202607241)
-            + sample_records(rec_short_think_aug, 4800, 202607242)
-            + user_strict_dual_aug
-            + sample_records(user_strict_aug, 1446, 202607243)
+        "v12_product_ad_rec_lite": (
+            sample_records(rec_no_think_aug, 3200, 202607271)
+            + sample_records(rec_short_think_aug, 2400, 202607272)
+            + sample_domain(rec_no_think_aug, {"商品", "广告"}, 7200, 202607273)
+            + sample_domain(rec_short_think_aug, {"商品", "广告"}, 3600, 202607274)
+            + sample_records(rec_clean_aug, 1600, 202607275)
             + item_route_aug
             + item_compact_aug
+            + sample_records(user_strict_dual_aug, 2400, 202607276)
         ),
     }
     manifest = {
@@ -589,6 +603,13 @@ def prepare_datasets() -> dict[str, dict]:
             "v13": {"total": 0.7743, "item": 0.1533, "user": [0.0447, 0.0431], "rec": [0.0480, 0.1020, 0.1386, 0.1071], "world": 0.1375},
             "v14": {"total": 0.6743, "item": 0.1533, "user": [0.0036, 0.0290], "rec": [0.0288, 0.0816, 0.1330, 0.1116], "world": 0.1335},
         },
+        "v19_v24_scores": {
+            "v19": {"total": 0.8855, "item": 0.2146, "user": [0.0855, 0.0337], "rec": [0.0768, 0.1020, 0.1344, 0.1143], "world": 0.1242, "eval_time_min": 48.11},
+            "v21": {"total": 0.8800, "item": 0.2146, "user": [0.0881, 0.0347], "rec": [0.0576, 0.1122, 0.1358, 0.1098], "world": 0.1271, "eval_time_min": 47.61},
+            "v22": {"total": 0.8217, "item": 0.2146, "user": [0.0413, 0.0228], "rec": [0.0576, 0.0986, 0.1372, 0.1116], "world": 0.1379, "eval_time_min": 69.83},
+            "v23": {"total": 0.6990, "item": 0.1533, "user": [0.0058, 0.0211], "rec": [0.0384, 0.0884, 0.1484, 0.1071], "world": 0.1364, "eval_time_min": 75.92},
+            "v24": {"total": 0.8364, "item": 0.2146, "user": [0.0733, 0.0365], "rec": [0.0480, 0.0952, 0.1288, 0.1080], "world": 0.1320, "eval_time_min": 64.35},
+        },
         "augmentation_counts": {
             "user_json_aug": len(user_json_aug),
             "user_logic_aug": len(user_logic_aug),
@@ -601,9 +622,9 @@ def prepare_datasets() -> dict[str, dict]:
             "item_route_aug": len(item_route_aug),
         },
         "recipes": {
-            "scratch_clean_cot_ep3": "Scratch official-OneReason SFT: original CoT all + 9600 cleaned rec CoT + 6400 rec /no_think direct-final + strict user JSON/route aug + item route aug + compact item CoT aug.",
-            "scratch_clean_cot_guard_ep5": "Scratch official-OneReason SFT: original CoT all + 4800 cleaned rec CoT + 3200 rec /no_think direct-final + strict dual user aug + 3x item-style replay. Lower LR and 5 epochs test longer training without v7 final-only bias.",
-            "v15_cot_light_repair": "v15 continuation: 6400 rec /no_think direct-final + 4800 short rec /think CoT + strict dual user aug + half strict user replay + item route aug + compact item CoT aug.",
+            "v19_product_world_guard": "v19 continuation: route-balanced rec replay plus extra product rec /no_think and /think, small cleaned CoT, full item replay, and small user guard. Low LR/short epoch because v19 is already near best.",
+            "v21_product_rec_rebalance": "v21 continuation: heavier product/video rec repair, full item replay, and light user replay. Tests whether highest-user checkpoint can recover recommendation metrics.",
+            "v12_product_ad_rec_lite": "v12 continuation: very small product/ad rec repair from the best user2/world checkpoint, plus item replay and small user guard.",
         },
         "cot_policy": "Preserve /think reasoning supervision and do not use v7_final_only as a CoT training base. For /no_think prompts, train pure final answers without generated <think> tags. This is route-specific behavior, not global CoT removal.",
         "eval_observations": {
@@ -611,6 +632,9 @@ def prepare_datasets() -> dict[str, dict]:
             "v15": "best CoT-preserving score so far: total=0.8778, eval_time≈70.1min; logs show repeated tokens, JSON shell errors, prompt leakage, and verbose /no_think outputs.",
             "v19": "best CoT-native continuation so far: total=0.8855, eval_time≈48.1min; user1 and rec4 improved but world dropped.",
             "v20": "v7 final-only continuation with CoT restore failed as a CoT route: total=0.8527, item fell to 0.1840; do not use v7 as future CoT base.",
+            "v22": "scratch official-base 3 epoch clean CoT underperformed: total=0.8217; item/world preserved but user and rec2 are weak.",
+            "v23": "scratch official-base 5 epoch low-LR guard failed badly: total=0.6990; item/user collapse suggests long scratch SFT is not viable with current data mix.",
+            "v24": "v15 light repair is best among v22-v24 but still only total=0.8364; user2 improves but rec/world do not recover.",
             "v16": "CoT pattern rewrite failed: total=0.7912; logs show malformed user JSON and fragmented recommendation reasoning.",
             "v18": "low-LR mixed replay from v12 failed: total=0.8340; item/world dropped and rec outputs mixed text/itemic/think tags.",
         },
@@ -1073,7 +1097,11 @@ def main() -> int:
             )
             + "\n",
         )
-        time.sleep(HEARTBEAT_SECONDS)
+        slept = 0
+        while slept < HEARTBEAT_SECONDS and any(thread.is_alive() for thread in threads):
+            interval = min(30, HEARTBEAT_SECONDS - slept)
+            time.sleep(interval)
+            slept += interval
     for thread in threads:
         thread.join()
 

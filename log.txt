@@ -162,3 +162,70 @@ run baseline
 
 
 [2026-07-10 01:00:41] start experiment preparation; deadline=2026-07-10 09:00:00 +0800
+
+
+[2026-07-10 02:19:37] overnight v22-v24 monitor checkpoint
+- plan correction: do not use v7_final_only as a CoT training base. v7 remains only a fallback/reference checkpoint.
+- v22_scratch_clean_cot_lr6e6_ep3: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=scratch_clean_cot_ep3, lr=6e-6, epochs=3, goal=from official CoT-native base, test whether longer clean CoT SFT can exceed short continuation runs without inheriting final-only bias.
+- v23_scratch_clean_cot_guard_lr3e6_ep5: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=scratch_clean_cot_guard_ep5, lr=3e-6, epochs=5, goal=conservative long-run CoT with heavier item/route guard to test whether 3-5 epochs from scratch improves quality instead of overfitting.
+- v24_v15_cot_light_repair_lr25e6_ep035: base=/home/ll/llm4rec/experiments/outputs/v15_user_logic_json_lr15e6, dataset=v15_cot_light_repair, lr=2.5e-6, epochs=0.35, goal=small CoT-native repair from v15, mainly reducing verbose/invalid reasoning while preserving v15 item/user gains.
+- current status: v24 finished ok; train_loss=1.7334, runtime=876.5s. v22 and v23 are running normally on GPU0/GPU1; v22 is about 22% done and v23 about 14% done. Deadline guard remains 2026-07-10 09:00:00 +0800.
+
+
+[2026-07-10 08:47:37] experiments summary
+- summary: /home/ll/llm4rec/experiments/logs/summary.md
+- configs: /home/ll/llm4rec/experiments/configs
+- outputs: /home/ll/llm4rec/experiments/outputs
+- deadline enforced: 2026-07-10 09:00:00 +0800
+- v22_scratch_clean_cot_lr6e6_ep3: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=scratch_clean_cot_ep3, lr=6.0e-6, epochs=3, scheduler=cosine, train_loss=1.6374940127907638, last_logged_loss=1.4981372833251954, runtime=20816.512, output=/home/ll/llm4rec/experiments/outputs/v22_scratch_clean_cot_lr6e6_ep3
+  note=Scratch SFT from official OneReason. Clean CoT-balanced long run: original CoT data plus short/clean rec CoT, no-think direct rec route, strict user JSON, and strong item replay. Tests whether 3 epochs at low LR learns stable CoT without v7 final-only bias.
+- v24_v15_cot_light_repair_lr25e6_ep035: base=/home/ll/llm4rec/experiments/outputs/v15_user_logic_json_lr15e6, dataset=v15_cot_light_repair, lr=2.5e-6, epochs=0.35, scheduler=cosine, train_loss=1.7334247456406646, last_logged_loss=1.58885498046875, runtime=876.5295, output=/home/ll/llm4rec/experiments/outputs/v24_v15_cot_light_repair_lr25e6_ep035
+  note=v15 continuation. Small CoT-native repair with strong item replay, strict user JSON, and limited rec fast/short-CoT supervision. Goal: improve v15/v19 while avoiding v19 world loss and without using v7 as a CoT base.
+- v23_scratch_clean_cot_guard_lr3e6_ep5: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=scratch_clean_cot_guard_ep5, lr=3.0e-6, epochs=5, scheduler=cosine, train_loss=1.8179572771795047, last_logged_loss=1.7696298599243163, runtime=26174.2071, output=/home/ll/llm4rec/experiments/outputs/v23_scratch_clean_cot_guard_lr3e6_ep5
+  note=Scratch SFT from official OneReason. More conservative 5-epoch CoT run with lower LR, heavier item replay, and lighter rec augmentation. Tests whether 3-5 epoch training helps when update size is controlled.
+
+
+[2026-07-10 22:12:04] leaderboard eval results for v22-v24
+- v22_scratch_clean_cot_lr6e6_ep3: eval_name=v22_scratch_clean_cot_lr6e6_ep3_V1_eval_20260710221128, status=completed, runtime=1h9m50s, total=0.8217, item=0.2146, user=0.0413/0.0228, rec=0.0576/0.0986/0.1372/0.1116, world=0.1379, submit_id=SLBE9DFE15326, eval_time=2026-07-10 22:11:32.
+- v23_scratch_clean_cot_guard_lr3e6_ep5: eval_name=v23_scratch_clean_cot_guard_lr3e6__V1_eval_20260710221138, platform_model_name=v23_scratch_clean_cot_guard_lr3e6_, status=completed, runtime=1h15m55s, total=0.6990, item=0.1533, user=0.0058/0.0211, rec=0.0384/0.0884/0.1484/0.1071, world=0.1364, submit_id=SLBE9DFE15326, eval_time=2026-07-10 22:11:49.
+- v24_v15_cot_light_repair_lr25e6_ep035: eval_name=v24_v15_cot_light_repair_lr25e6_ep_V1_eval_20260710221154, platform_model_name=v24_v15_cot_light_repair_lr25e6_ep, status=completed, runtime=1h4m21s, total=0.8364, item=0.2146, user=0.0733/0.0365, rec=0.0480/0.0952/0.1288/0.1080, world=0.1320, submit_id=SLBE9DFE15326, eval_time=2026-07-10 22:12:04.
+- immediate factual read: v24 is best among this batch; v23 is a failed long-training direction; v22/v24 both preserve item=0.2146 but do not beat v7 overall.
+
+
+[2026-07-10 23:42:00] planned experiments v25-v27
+- references checked:
+  - ThinkRec argues that LLM4Rec benefits from explicit thinking traces that summarize item keywords, analyze interaction history, identify user preferences, and decide on target items.
+  - MSR-Rec reports that retaining task-decomposed reasoning supervision improves sequential recommendation over no-reason variants.
+  - ReasoningRec uses LLM-generated explanations/preferences to fine-tune smaller recommendation models, supporting short structured reasoning rather than final-only training.
+- score diagnosis:
+  - v23 is a clear failed direction: longer 5-epoch scratch SFT collapsed item/user despite normal world score. Stop long scratch SFT under current data mix.
+  - v22 shows scratch 3-epoch can preserve item/world but loses user and product recommendation, so official-base scratch is not the immediate path.
+  - v24 is best in v22-v24 but still below v19/v21; light v15 repair improves user2 but rec/world remain weak.
+  - v19/v21 remain the best CoT-native bases: v19 has best total among CoT continuations and good rec1/rec4; v21 has best user1. v12 keeps best user2/world signal.
+- v25_v19_product_world_guard_lr18e6_ep028: base=v19, dataset=v19_product_world_guard, lr=1.8e-6, epochs=0.28. Product-rec heavy but low-update repair; goal is preserve v19 speed/item/user1 and recover rec2/world.
+- v26_v21_product_rec_rebalance_lr22e6_ep032: base=v21, dataset=v21_product_rec_rebalance, lr=2.2e-6, epochs=0.32. Heavier product/video rec route supervision; goal is keep v21 user1 while raising rec1/rec2.
+- v27_v12_product_ad_rec_lite_lr16e6_ep03: base=v12, dataset=v12_product_ad_rec_lite, lr=1.6e-6, epochs=0.30. Tiny product/ad repair from strongest user2/world checkpoint; goal is test whether v12 can gain rec2/rec3 without losing user2/world.
+- constraints: no v7 as CoT training base; save_strategy=no; generated experiment jsonl files are removed after run; deadline=2026-07-11 09:00:00 +0800.
+
+
+[2026-07-10 23:42:28] start experiment preparation; deadline=2026-07-11 09:00:00 +0800
+[2026-07-10 23:42:34] prepare-only completed; no training launched.
+
+
+[2026-07-10 23:43:11] start experiment preparation; deadline=2026-07-11 09:00:00 +0800
+
+
+[2026-07-10 23:45:22] start experiment preparation; deadline=2026-07-11 09:00:00 +0800
+
+
+[2026-07-11 00:06:59] experiments summary
+- summary: /home/ll/llm4rec/experiments/logs/summary.md
+- configs: /home/ll/llm4rec/experiments/configs
+- outputs: /home/ll/llm4rec/experiments/outputs
+- deadline enforced: 2026-07-11 09:00:00 +0800
+- v25_v19_product_world_guard_lr18e6_ep028: base=/home/ll/llm4rec/experiments/outputs/v19_v15_dualmode_fast_lr5e6_ep055, dataset=v19_product_world_guard, lr=1.8e-6, epochs=0.28, scheduler=cosine, train_loss=1.335793836696728, last_logged_loss=1.477519702911377, runtime=616.3408, output=/home/ll/llm4rec/experiments/outputs/v25_v19_product_world_guard_lr18e6_ep028
+  note=v19 continuation. Ultra-light product-rec repair with item replay and small user guard. Goal: keep v19 fast/item/user1 behavior while recovering product recommendation and avoiding further world-score erosion.
+- v26_v21_product_rec_rebalance_lr22e6_ep032: base=/home/ll/llm4rec/experiments/outputs/v21_v15_user_repair_rec_fast_lr4e6_ep055, dataset=v21_product_rec_rebalance, lr=2.2e-6, epochs=0.32, scheduler=cosine, train_loss=0.745630294084549, last_logged_loss=0.8160898208618164, runtime=819.7494, output=/home/ll/llm4rec/experiments/outputs/v26_v21_product_rec_rebalance_lr22e6_ep032
+  note=v21 continuation. Rec rebalance from the best user1 checkpoint: heavier product/video rec route supervision, item replay, and only light user replay. Goal: preserve user1 while raising rec1/rec2.
+- v27_v12_product_ad_rec_lite_lr16e6_ep03: base=/home/ll/llm4rec/experiments/outputs/v12_user_cot_focus_lr15e6, dataset=v12_product_ad_rec_lite, lr=1.6e-6, epochs=0.3, scheduler=cosine, train_loss=2.1623025621686662, last_logged_loss=2.035507011413574, runtime=563.9869, output=/home/ll/llm4rec/experiments/outputs/v27_v12_product_ad_rec_lite_lr16e6_ep03
+  note=v12 continuation. Tiny product/ad recommendation repair from the strongest user2/world CoT checkpoint. Goal: test whether v12 can gain rec2/rec3 without losing its user2 and world advantages.
