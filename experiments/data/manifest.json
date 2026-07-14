@@ -1,71 +1,46 @@
 {
-  "v19_product_world_guard": {
-    "name": "v19_product_world_guard",
-    "path": "/home/ll/llm4rec/experiments/data/v19_product_world_guard.jsonl",
-    "records": 27772,
+  "v29_live_specialist_r3": {
+    "name": "v29_live_specialist_r3",
+    "path": "/home/ll/llm4rec/experiments/data/v29_live_specialist_r3.jsonl",
+    "records": 13013,
     "groups": {
-      "rec": 13378,
-      "item": 11194,
-      "user": 3200
+      "rec": 7413,
+      "user": 2400,
+      "item": 3200
     },
     "variants": {
-      "rec_cot_pattern_clean": 2400,
-      "item_short_think": 2792,
-      "item_compact_cot": 5597,
-      "rec_no_think_direct_final": 6289,
-      "user_strict_logic": 1208,
-      "rec_short_think_final": 4689,
-      "item_no_think_direct_final": 2805,
-      "user_extra_no_think_logic": 550,
-      "user_strict_array": 1442
+      "raw": 1271,
+      "user_strict_array": 1080,
+      "user_extra_no_think_logic": 424,
+      "rec_no_think_direct_final": 3071,
+      "item_no_think_direct_final": 1659,
+      "rec_r3_draft_evidence": 3071,
+      "item_short_think": 1541,
+      "user_strict_logic": 896
     },
-    "sha256": "6e45bc1b371e8ca509768327592079c144491f55adf772007ca24b1859acd29a",
+    "sha256": "5710cee8621dde0b19e5418cfe81cc5aea2933d432478968c498ff0f00e24934",
     "seed": 202607111
   },
-  "v21_product_rec_rebalance": {
-    "name": "v21_product_rec_rebalance",
-    "path": "/home/ll/llm4rec/experiments/data/v21_product_rec_rebalance.jsonl",
-    "records": 37594,
+  "v29_balanced_r3_draft": {
+    "name": "v29_balanced_r3_draft",
+    "path": "/home/ll/llm4rec/experiments/data/v29_balanced_r3_draft.jsonl",
+    "records": 15942,
     "groups": {
-      "rec": 24000,
-      "item": 11194,
-      "user": 2400
+      "rec": 10342,
+      "user": 2400,
+      "item": 3200
     },
     "variants": {
-      "rec_short_think_final": 9600,
-      "item_no_think_direct_final": 2805,
-      "rec_no_think_direct_final": 14400,
-      "user_strict_logic": 904,
-      "user_strict_array": 1094,
-      "item_short_think": 2792,
-      "item_compact_cot": 5597,
-      "user_extra_no_think_logic": 402
+      "rec_r3_draft_evidence": 5171,
+      "user_strict_logic": 892,
+      "rec_no_think_direct_final": 5171,
+      "item_no_think_direct_final": 1563,
+      "user_strict_array": 1087,
+      "user_extra_no_think_logic": 421,
+      "item_short_think": 1637
     },
-    "sha256": "5b58f82b4dfaed0a3bee1dc5ae24ee4406ae40c70038e6bca271ca61b8fe50fa",
+    "sha256": "a7e50c88eef370f6de88e1afa70995c7712afa750acc711b490d34d700d44f31",
     "seed": 202607112
-  },
-  "v12_product_ad_rec_lite": {
-    "name": "v12_product_ad_rec_lite",
-    "path": "/home/ll/llm4rec/experiments/data/v12_product_ad_rec_lite.jsonl",
-    "records": 26924,
-    "groups": {
-      "rec": 13330,
-      "item": 11194,
-      "user": 2400
-    },
-    "variants": {
-      "rec_short_think_final": 5465,
-      "rec_no_think_direct_final": 6265,
-      "item_no_think_direct_final": 2805,
-      "user_extra_no_think_logic": 410,
-      "item_compact_cot": 5597,
-      "user_strict_array": 1096,
-      "rec_cot_pattern_clean": 1600,
-      "user_strict_logic": 894,
-      "item_short_think": 2792
-    },
-    "sha256": "8d8285f5ea337154d720a4f1cae44ae9e00228264effaa9ebc527248cb291eff",
-    "seed": 202607113
   },
   "_notes": {
     "raw_counts": {
@@ -247,6 +222,106 @@
         "eval_time_min": 64.35
       }
     },
+    "v25_v27_scores": {
+      "v25": {
+        "total": 0.8793,
+        "item": 0.2146,
+        "user": [
+          0.0835,
+          0.0342
+        ],
+        "rec": [
+          0.0672,
+          0.1088,
+          0.1358,
+          0.1098
+        ],
+        "world": 0.1253,
+        "eval_time_min": 50.48
+      },
+      "v26": {
+        "total": 0.8804,
+        "item": 0.2146,
+        "user": [
+          0.0895,
+          0.0344
+        ],
+        "rec": [
+          0.0768,
+          0.0986,
+          0.133,
+          0.1116
+        ],
+        "world": 0.1219,
+        "eval_time_min": 45.73
+      },
+      "v27": {
+        "total": 0.8563,
+        "item": 0.2146,
+        "user": [
+          0.0733,
+          0.0419
+        ],
+        "rec": [
+          0.0576,
+          0.0986,
+          0.1344,
+          0.1062
+        ],
+        "world": 0.1297,
+        "eval_time_min": 70.63
+      }
+    },
+    "v28_v30_scores": {
+      "v28": {
+        "total": 0.8748,
+        "item": 0.2146,
+        "user": [
+          0.0886,
+          0.035
+        ],
+        "rec": [
+          0.0576,
+          0.1122,
+          0.133,
+          0.1107
+        ],
+        "world": 0.123,
+        "eval_time_min": 51.7
+      },
+      "v29": {
+        "total": 0.9038,
+        "item": 0.2146,
+        "user": [
+          0.0886,
+          0.0346
+        ],
+        "rec": [
+          0.0768,
+          0.1054,
+          0.14,
+          0.1125
+        ],
+        "world": 0.1312,
+        "eval_time_min": 45.3
+      },
+      "v30": {
+        "total": 0.8846,
+        "item": 0.2146,
+        "user": [
+          0.0895,
+          0.0338
+        ],
+        "rec": [
+          0.0672,
+          0.102,
+          0.1316,
+          0.1143
+        ],
+        "world": 0.1316,
+        "eval_time_min": 46.51
+      }
+    },
     "augmentation_counts": {
       "user_json_aug": 2892,
       "user_logic_aug": 1304,
@@ -254,14 +329,14 @@
       "item_compact_aug": 5597,
       "rec_no_think_aug": 19204,
       "rec_short_think_aug": 19204,
+      "rec_r3_draft_aug": 19204,
       "user_strict_aug": 2892,
       "user_strict_dual_aug": 3494,
       "item_route_aug": 5597
     },
     "recipes": {
-      "v19_product_world_guard": "v19 continuation: route-balanced rec replay plus extra product rec /no_think and /think, small cleaned CoT, full item replay, and small user guard. Low LR/short epoch because v19 is already near best.",
-      "v21_product_rec_rebalance": "v21 continuation: heavier product/video rec repair, full item replay, and light user replay. Tests whether highest-user checkpoint can recover recommendation metrics.",
-      "v12_product_ad_rec_lite": "v12 continuation: very small product/ad rec repair from the best user2/world checkpoint, plus item replay and small user guard."
+      "v29_live_specialist_r3": "v29 live-domain specialist: all live-target raw CoT, individualized three-level R3 draft CoT, and no-think direct answers, plus balanced general-rec, item, and user guards.",
+      "v29_balanced_r3_draft": "v29 four-domain cognition specialist: equal target counts for live/ad/product/video in both individualized R3 draft-thinking and direct no-thinking routes, plus item and user guards."
     },
     "cot_policy": "Preserve /think reasoning supervision and do not use v7_final_only as a CoT training base. For /no_think prompts, train pure final answers without generated <think> tags. This is route-specific behavior, not global CoT removal.",
     "eval_observations": {
@@ -272,6 +347,12 @@
       "v22": "scratch official-base 3 epoch clean CoT underperformed: total=0.8217; item/world preserved but user and rec2 are weak.",
       "v23": "scratch official-base 5 epoch low-LR guard failed badly: total=0.6990; item/user collapse suggests long scratch SFT is not viable with current data mix.",
       "v24": "v15 light repair is best among v22-v24 but still only total=0.8364; user2 improves but rec/world do not recover.",
+      "v25": "v19 product-heavy repair did not beat v19: total=0.8793. Logs show heavy repeated product tokens and repeated short-think phrases; avoid this over-sampling pattern.",
+      "v26": "best latest batch and fastest eval: total=0.8804, eval_time≈45.7min, best user1/rec1. It is useful as a base, but rec2/world dropped.",
+      "v27": "v12 product/ad repair kept user2/world relatively better but was slow and template-heavy: total=0.8563, eval_time≈70.6min. Do not continue this exact direction.",
+      "v28": "v26 no-template repair regressed to total=0.8748 and slowed to 51.7min; broad continuation from v26 did not recover world/rec balance.",
+      "v29": "new best CoT-native model: total=0.9038, eval_time≈45.3min. Strong item/user1/ad/product/world, with live recommendation (0.1054) the clearest remaining gap. Logs still show occasional no-think tag leakage and a repeated generic live-reasoning sentence.",
+      "v30": "three-source soup reached total=0.8846, below v29. It retained speed/world but diluted recommendation scores; do not repeat broad checkpoint averaging.",
       "v16": "CoT pattern rewrite failed: total=0.7912; logs show malformed user JSON and fragmented recommendation reasoning.",
       "v18": "low-LR mixed replay from v12 failed: total=0.8340; item/world dropped and rec outputs mixed text/itemic/think tags."
     }

@@ -229,3 +229,89 @@ run baseline
   note=v21 continuation. Rec rebalance from the best user1 checkpoint: heavier product/video rec route supervision, item replay, and only light user replay. Goal: preserve user1 while raising rec1/rec2.
 - v27_v12_product_ad_rec_lite_lr16e6_ep03: base=/home/ll/llm4rec/experiments/outputs/v12_user_cot_focus_lr15e6, dataset=v12_product_ad_rec_lite, lr=1.6e-6, epochs=0.3, scheduler=cosine, train_loss=2.1623025621686662, last_logged_loss=2.035507011413574, runtime=563.9869, output=/home/ll/llm4rec/experiments/outputs/v27_v12_product_ad_rec_lite_lr16e6_ep03
   note=v12 continuation. Tiny product/ad recommendation repair from the strongest user2/world CoT checkpoint. Goal: test whether v12 can gain rec2/rec3 without losing its user2 and world advantages.
+
+
+[2026-07-12] leaderboard eval results and tonight plan for v28-v30
+- latest evals:
+  - v25_v19_product_world_guard_lr18e6_ep028: total=0.8793, item=0.2146, user=0.0835/0.0342, rec=0.0672/0.1088/0.1358/0.1098, world=0.1253, eval_time=50.48min.
+  - v26_v21_product_rec_rebalance_lr22e6_ep032: total=0.8804, item=0.2146, user=0.0895/0.0344, rec=0.0768/0.0986/0.1330/0.1116, world=0.1219, eval_time=45.73min.
+  - v27_v12_product_ad_rec_lite_lr16e6_ep03: total=0.8563, item=0.2146, user=0.0733/0.0419, rec=0.0576/0.0986/0.1344/0.1062, world=0.1297, eval_time=70.63min.
+- log-level conclusions:
+  - v26 is the best latest batch and the fastest eval, with useful gains on user1 and rec1, but it sacrifices rec2 and world.
+  - v25/v27 confirm that heavy product/ad oversampling and fixed short-think templates cause repeated itemic/template outputs; do not repeat that data mix.
+  - v27 confirms v12 still carries user2/world signal, but direct v12 product/ad continuation is slow and low-yield.
+- external references:
+  - Official challenge description evaluates 懂物料/懂用户/懂推荐/懂世界, so removing CoT globally is not the active direction.
+  - ThinkRec/MSR-Rec support explicit reasoning supervision, but MSR-Rec also notes overly complex reasoning can hurt recommendation accuracy; use short, route-specific, non-repetitive CoT.
+  - Model soups support averaging related fine-tuned models without inference overhead, useful here because v19/v21/v26 are same-architecture CoT-native continuations with complementary metrics.
+- tonight experiments:
+  - v28_v26_no_template_product_world_lr12e6_ep022: base=v26, lr=1.2e-6, epochs=0.22, dataset=v26_no_template_product_world. Remove fixed short-think template, mild product/video rec repair, item replay, user guard. Goal: keep v26 speed/user1/rec1 and recover rec2/world.
+  - v29_v19_user_world_guard_lr8e7_ep018: base=v19, lr=8e-7, epochs=0.18, dataset=v19_user_world_guard_no_template. Tiny user/world guard update with raw user CoT, strict JSON dual-route replay, light cleaned rec, item replay. Goal: preserve best CoT total and nudge user2/world.
+  - v30_soup_v19_v21_v26_w45_35_20: weighted model soup, v19:0.45/v21:0.35/v26:0.20. No v7 source. Goal: combine v19 total/rec4, v21 user/world, and v26 speed/user1/rec1 without extra inference cost.
+
+
+[2026-07-12 04:25:19] start experiment preparation; deadline=none
+[2026-07-12 04:25:24] prepare-only completed; no training launched.
+
+
+[2026-07-12 04:25:42] model soup created
+- v30_soup_v19_v21_v26_w45_35_20: method=weighted_model_soup, weights=v19:0.45/v21:0.35/v26:0.20, output=/home/ll/llm4rec/experiments/outputs/v30_soup_v19_v21_v26_w45_35_20
+- note=CoT-native soup, no v7 final-only source; intended to combine v19 total, v21 user/world, and v26 speed/user1/rec1 without inference overhead.
+
+
+[2026-07-12 04:25:50] start experiment preparation; deadline=none
+
+
+[2026-07-12 04:34:26] experiments summary
+- summary: /home/ll/llm4rec/experiments/logs/summary.md
+- configs: /home/ll/llm4rec/experiments/configs
+- outputs: /home/ll/llm4rec/experiments/outputs
+- deadline enforced: none
+- v28_v26_no_template_product_world_lr12e6_ep022: base=/home/ll/llm4rec/experiments/outputs/v26_v21_product_rec_rebalance_lr22e6_ep032, dataset=v26_no_template_product_world, lr=1.2e-6, epochs=0.22, scheduler=cosine, train_loss=1.5697357273101806, last_logged_loss=1.6456531524658202, runtime=430.9822, output=/home/ll/llm4rec/experiments/outputs/v28_v26_no_template_product_world_lr12e6_ep022
+  note=v26 continuation. Remove repeated synthetic short-think templates, keep low-update CoT/no-think route supervision, add mild product/video rec replay plus item and user guards. Goal: keep v26 speed/user1/rec1 while recovering rec2/world.
+- v29_v19_user_world_guard_lr8e7_ep018: base=/home/ll/llm4rec/experiments/outputs/v19_v15_dualmode_fast_lr5e6_ep055, dataset=v19_user_world_guard_no_template, lr=8.0e-7, epochs=0.18, scheduler=cosine, train_loss=1.4800728635585054, last_logged_loss=1.5110461235046386, runtime=394.9336, output=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018
+
+[2026-07-13] leaderboard eval results and v31-v33 plan
+- v28_v26_no_template_product_world_lr12e6_ep022: total=0.8748, item=0.2146, user=0.0886/0.0350, rec=0.0576/0.1122/0.1330/0.1107, world=0.1230, eval_time=51.70min.
+- v29_v19_user_world_guard_lr8e7_ep018: total=0.9038, item=0.2146, user=0.0886/0.0346, rec=0.0768/0.1054/0.1400/0.1125, world=0.1312, eval_time=45.30min. This is the new best and first CoT-native checkpoint above v7.
+- v30_soup_v19_v21_v26_w45_35_20: total=0.8846, item=0.2146, user=0.0895/0.0338, rec=0.0672/0.1020/0.1316/0.1143, world=0.1316, eval_time=46.51min.
+- reasoning-log observations:
+  - v29's gain is broad and efficient, but recommendation-live=0.1054 remains its largest gap versus v7=0.1360.
+  - v29 live /no_think candidate logs still occasionally leak <think> tags and repeat a generic "先按近1年的行为历史" sentence; the model is fast because most selected paths remain short, but live routing is not clean.
+  - v28 often expands long generic user portraits on recommendation candidates, matching its slower 51.7min evaluation and lower score.
+  - v30 broad averaging retains speed/world but dilutes v29's recommendation strengths, so tonight uses specialists and task vectors instead of another broad soup.
+- literature basis:
+  - OneReason (2026) identifies perception+cognition as necessary, uses item/interest/task-level CoT, and advocates specialize-then-unify across recommendation domains.
+  - Draft-Thinking (2026) reports that concise draft structure should retain critical evidence and reduce redundant reasoning steps, rather than deleting reasoning.
+  - Recent systematic model-merging evidence favors simple task arithmetic over broad averaging/interference-heavy methods for LLM checkpoints.
+- tonight's three versions:
+  - v31_v29_live_specialist_r3_lr12e6_ep035: v29 live-domain specialist with all live-target raw CoT, individualized three-level draft CoT, direct /no_think answers, and item/user/general-rec guards.
+  - v32_v29_balanced_r3_draft_lr8e7_ep020: v29 balanced four-domain expert with equal live/ad/product/video targets in both thinking and no-thinking routes.
+  - v33_task_arith_v29_live55_r325: theta_v29 + 0.55*(theta_v31-theta_v29) + 0.25*(theta_v32-theta_v29); CoT-native specialize-then-unify approximation, no v7 source.
+[2026-07-13 03:27:32] start experiment preparation; deadline=none
+[2026-07-13 03:27:38] prepare-only completed; no training launched.
+
+
+[2026-07-13 03:28:05] start experiment preparation; deadline=none
+
+
+[2026-07-13 03:38:13] experiments summary
+- summary: /home/ll/llm4rec/experiments/logs/summary.md
+- configs: /home/ll/llm4rec/experiments/configs
+- outputs: /home/ll/llm4rec/experiments/outputs
+- deadline enforced: none
+- v31_v29_live_specialist_r3_lr12e6_ep035: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v29_live_specialist_r3, lr=1.2e-6, epochs=0.35, scheduler=cosine, train_loss=1.5556521063945332, last_logged_loss=1.5306562423706054, runtime=514.4769, output=/home/ll/llm4rec/experiments/outputs/v31_v29_live_specialist_r3_lr12e6_ep035
+  note=v29 continuation and live-domain specialist. Use diverse evidence-grounded three-level CoT plus strict no-think direct answers for every live-target record, with item/user/general-rec guards. Goal: raise recommendation-live without losing v29's speed or other dimensions.
+- v32_v29_balanced_r3_draft_lr8e7_ep020: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v29_balanced_r3_draft, lr=8.0e-7, epochs=0.2, scheduler=cosine, train_loss=1.7309840440750122, last_logged_loss=1.7677625656127929, runtime=323.247, output=/home/ll/llm4rec/experiments/outputs/v32_v29_balanced_r3_draft_lr8e7_ep020
+  note=v29 continuation and balanced four-domain R3 specialist. Equalize live/ad/product/video target supervision and train concise individualized interest-evolution-task CoT plus route-correct direct answers. Goal: reduce video dominance and improve recommendation balance while retaining meaningful CoT.
+
+[2026-07-13 03:38:30] task-arithmetic model created
+- v33_task_arith_v29_live55_r325: theta_v29 + 0.55*(theta_v31-theta_v29) + 0.25*(theta_v32-theta_v29), output=/home/ll/llm4rec/experiments/outputs/v33_task_arith_v29_live55_r325
+
+[2026-07-13 03:39] final verification for v31-v33
+- v31: status=ok, steps=61, train_loss=1.5556521063945332, last_logged_loss=1.5306562423706054, train_runtime=514.4769s.
+- v32: status=ok, steps=40, train_loss=1.7309840440750122, last_logged_loss=1.7677625656127929, train_runtime=323.247s.
+- v33: method=task_arithmetic, runtime=2.11s, tensor_keys=311, all_finite=true, formula_check_max_abs_error=9.5367431640625e-07 (bf16 rounding).
+- cleanup: generated experiment jsonl files removed; only experiments/data/manifest.json remains; no checkpoint-* directories under v31-v33.
+- gpu_release: GPU0=163MiB/0%, GPU1=15MiB/0%.
+- suggested leaderboard order: v33 first (unified candidate), v31 second (direct live-specialist ablation), v32 third (balanced R3 ablation).

@@ -62,37 +62,26 @@ ITEMIC_RE = re.compile(r"<\|(?:prod|video|ad|living)_begin\|><s_a_\d+><s_b_\d+><
 
 RUNS = [
     {
-        "name": "v25_v19_product_world_guard_lr18e6_ep028",
-        "dataset": "v19_product_world_guard",
-        "model_path": str((OUTPUT_DIR / "v19_v15_dualmode_fast_lr5e6_ep055").resolve()),
-        "lr": "1.8e-6",
-        "epochs": 0.28,
+        "name": "v31_v29_live_specialist_r3_lr12e6_ep035",
+        "dataset": "v29_live_specialist_r3",
+        "model_path": str((OUTPUT_DIR / "v29_v19_user_world_guard_lr8e7_ep018").resolve()),
+        "lr": "1.2e-6",
+        "epochs": 0.35,
         "warmup": 0.02,
         "scheduler": "cosine",
-        "seed": 202607251,
-        "note": "v19 continuation. Ultra-light product-rec repair with item replay and small user guard. Goal: keep v19 fast/item/user1 behavior while recovering product recommendation and avoiding further world-score erosion.",
+        "seed": 202607311,
+        "note": "v29 continuation and live-domain specialist. Use diverse evidence-grounded three-level CoT plus strict no-think direct answers for every live-target record, with item/user/general-rec guards. Goal: raise recommendation-live without losing v29's speed or other dimensions.",
     },
     {
-        "name": "v26_v21_product_rec_rebalance_lr22e6_ep032",
-        "dataset": "v21_product_rec_rebalance",
-        "model_path": str((OUTPUT_DIR / "v21_v15_user_repair_rec_fast_lr4e6_ep055").resolve()),
-        "lr": "2.2e-6",
-        "epochs": 0.32,
+        "name": "v32_v29_balanced_r3_draft_lr8e7_ep020",
+        "dataset": "v29_balanced_r3_draft",
+        "model_path": str((OUTPUT_DIR / "v29_v19_user_world_guard_lr8e7_ep018").resolve()),
+        "lr": "8.0e-7",
+        "epochs": 0.20,
         "warmup": 0.02,
         "scheduler": "cosine",
-        "seed": 202607261,
-        "note": "v21 continuation. Rec rebalance from the best user1 checkpoint: heavier product/video rec route supervision, item replay, and only light user replay. Goal: preserve user1 while raising rec1/rec2.",
-    },
-    {
-        "name": "v27_v12_product_ad_rec_lite_lr16e6_ep03",
-        "dataset": "v12_product_ad_rec_lite",
-        "model_path": str((OUTPUT_DIR / "v12_user_cot_focus_lr15e6").resolve()),
-        "lr": "1.6e-6",
-        "epochs": 0.30,
-        "warmup": 0.02,
-        "scheduler": "cosine",
-        "seed": 202607271,
-        "note": "v12 continuation. Tiny product/ad recommendation repair from the strongest user2/world CoT checkpoint. Goal: test whether v12 can gain rec2/rec3 without losing its user2 and world advantages.",
+        "seed": 202607321,
+        "note": "v29 continuation and balanced four-domain R3 specialist. Equalize live/ad/product/video target supervision and train concise individualized interest-evolution-task CoT plus route-correct direct answers. Goal: reduce video dominance and improve recommendation balance while retaining meaningful CoT.",
     },
 ]
 
@@ -459,6 +448,35 @@ def make_rec_cot_clean_augments(records: list[dict]) -> list[dict]:
     return augments
 
 
+def make_rec_r3_draft_augments(records: list[dict]) -> list[dict]:
+    """Compress each original recommendation trace without replacing its evidence."""
+    augments: list[dict] = []
+    for record in records:
+        think, final = split_think_output(record["output"])
+        if not think or not final or not ITEMIC_RE.search(final):
+            continue
+        full = normalize_cot_text(think)
+        interest = extract_stage(think, "兴趣归纳", ["行为模式", "预测总结"])
+        evolution = extract_stage(think, "行为模式", ["预测总结"])
+        decision = extract_stage(think, "预测总结", [])
+        if not interest:
+            interest = full[:520]
+        if not evolution:
+            evolution = full[520:940] or full[-420:]
+        if not decision:
+            decision = full[-360:]
+        output = (
+            "<think>\n"
+            f"【兴趣证据】{truncate_text(interest, 420)}\n"
+            f"【演化关系】{truncate_text(evolution, 340)}\n"
+            f"【目标判断】{truncate_text(decision, 260)}\n"
+            "</think>\n"
+            f"{final}"
+        )
+        augments.append(clone_record(record, output_text=output, variant="rec_r3_draft_evidence"))
+    return augments
+
+
 def infer_item_domain(token: str) -> str:
     if token.startswith("<|prod_begin|>"):
         return "商品"
@@ -542,39 +560,32 @@ def prepare_datasets() -> dict[str, dict]:
     item_compact_aug = make_item_compact_cot_augments(grouped["item"])
     rec_no_think_aug = make_rec_no_think_augments(grouped["rec"])
     rec_short_think_aug = make_rec_short_think_augments(grouped["rec"])
+    rec_r3_draft_aug = make_rec_r3_draft_augments(grouped["rec"])
     user_strict_aug = make_user_route_augments(grouped["user"], cap_logic_events=True, add_missing_no_think=False)
     user_strict_dual_aug = make_user_route_augments(grouped["user"], cap_logic_events=True, add_missing_no_think=True)
     item_route_aug = make_item_route_augments(grouped["item"])
 
     variants = {
-        "v19_product_world_guard": (
-            sample_records(rec_no_think_aug, 4800, 202607251)
-            + sample_records(rec_short_think_aug, 3200, 202607252)
-            + sample_domain(rec_no_think_aug, {"商品"}, 6400, 202607253)
-            + sample_domain(rec_short_think_aug, {"商品"}, 3200, 202607254)
-            + sample_records(rec_clean_aug, 2400, 202607255)
-            + item_route_aug
-            + item_compact_aug
-            + sample_records(user_strict_dual_aug, 3200, 202607256)
+        "v29_live_specialist_r3": (
+            sample_domain(grouped["rec"], {"直播"}, 2000, 202607311)
+            + sample_domain(rec_r3_draft_aug, {"直播"}, 2000, 202607312)
+            + sample_domain(rec_no_think_aug, {"直播"}, 2000, 202607313)
+            + sample_records(rec_r3_draft_aug, 1800, 202607314)
+            + sample_records(rec_no_think_aug, 1800, 202607315)
+            + sample_records(item_route_aug, 3200, 202607316)
+            + sample_records(user_strict_dual_aug, 2400, 202607317)
         ),
-        "v21_product_rec_rebalance": (
-            sample_records(rec_no_think_aug, 6400, 202607261)
-            + sample_records(rec_short_think_aug, 4800, 202607262)
-            + sample_domain(rec_no_think_aug, {"商品", "视频"}, 8000, 202607263)
-            + sample_domain(rec_short_think_aug, {"商品", "视频"}, 4800, 202607264)
-            + item_route_aug
-            + item_compact_aug
-            + sample_records(user_strict_dual_aug, 2400, 202607265)
-        ),
-        "v12_product_ad_rec_lite": (
-            sample_records(rec_no_think_aug, 3200, 202607271)
-            + sample_records(rec_short_think_aug, 2400, 202607272)
-            + sample_domain(rec_no_think_aug, {"商品", "广告"}, 7200, 202607273)
-            + sample_domain(rec_short_think_aug, {"商品", "广告"}, 3600, 202607274)
-            + sample_records(rec_clean_aug, 1600, 202607275)
-            + item_route_aug
-            + item_compact_aug
-            + sample_records(user_strict_dual_aug, 2400, 202607276)
+        "v29_balanced_r3_draft": (
+            sample_domain(rec_r3_draft_aug, {"直播"}, 1300, 202607321)
+            + sample_domain(rec_r3_draft_aug, {"广告"}, 1300, 202607322)
+            + sample_domain(rec_r3_draft_aug, {"商品"}, 1300, 202607323)
+            + sample_domain(rec_r3_draft_aug, {"视频"}, 1300, 202607324)
+            + sample_domain(rec_no_think_aug, {"直播"}, 1300, 202607325)
+            + sample_domain(rec_no_think_aug, {"广告"}, 1300, 202607326)
+            + sample_domain(rec_no_think_aug, {"商品"}, 1300, 202607327)
+            + sample_domain(rec_no_think_aug, {"视频"}, 1300, 202607328)
+            + sample_records(item_route_aug, 3200, 202607329)
+            + sample_records(user_strict_dual_aug, 2400, 202607330)
         ),
     }
     manifest = {
@@ -610,6 +621,16 @@ def prepare_datasets() -> dict[str, dict]:
             "v23": {"total": 0.6990, "item": 0.1533, "user": [0.0058, 0.0211], "rec": [0.0384, 0.0884, 0.1484, 0.1071], "world": 0.1364, "eval_time_min": 75.92},
             "v24": {"total": 0.8364, "item": 0.2146, "user": [0.0733, 0.0365], "rec": [0.0480, 0.0952, 0.1288, 0.1080], "world": 0.1320, "eval_time_min": 64.35},
         },
+        "v25_v27_scores": {
+            "v25": {"total": 0.8793, "item": 0.2146, "user": [0.0835, 0.0342], "rec": [0.0672, 0.1088, 0.1358, 0.1098], "world": 0.1253, "eval_time_min": 50.48},
+            "v26": {"total": 0.8804, "item": 0.2146, "user": [0.0895, 0.0344], "rec": [0.0768, 0.0986, 0.1330, 0.1116], "world": 0.1219, "eval_time_min": 45.73},
+            "v27": {"total": 0.8563, "item": 0.2146, "user": [0.0733, 0.0419], "rec": [0.0576, 0.0986, 0.1344, 0.1062], "world": 0.1297, "eval_time_min": 70.63},
+        },
+        "v28_v30_scores": {
+            "v28": {"total": 0.8748, "item": 0.2146, "user": [0.0886, 0.0350], "rec": [0.0576, 0.1122, 0.1330, 0.1107], "world": 0.1230, "eval_time_min": 51.70},
+            "v29": {"total": 0.9038, "item": 0.2146, "user": [0.0886, 0.0346], "rec": [0.0768, 0.1054, 0.1400, 0.1125], "world": 0.1312, "eval_time_min": 45.30},
+            "v30": {"total": 0.8846, "item": 0.2146, "user": [0.0895, 0.0338], "rec": [0.0672, 0.1020, 0.1316, 0.1143], "world": 0.1316, "eval_time_min": 46.51},
+        },
         "augmentation_counts": {
             "user_json_aug": len(user_json_aug),
             "user_logic_aug": len(user_logic_aug),
@@ -617,14 +638,14 @@ def prepare_datasets() -> dict[str, dict]:
             "item_compact_aug": len(item_compact_aug),
             "rec_no_think_aug": len(rec_no_think_aug),
             "rec_short_think_aug": len(rec_short_think_aug),
+            "rec_r3_draft_aug": len(rec_r3_draft_aug),
             "user_strict_aug": len(user_strict_aug),
             "user_strict_dual_aug": len(user_strict_dual_aug),
             "item_route_aug": len(item_route_aug),
         },
         "recipes": {
-            "v19_product_world_guard": "v19 continuation: route-balanced rec replay plus extra product rec /no_think and /think, small cleaned CoT, full item replay, and small user guard. Low LR/short epoch because v19 is already near best.",
-            "v21_product_rec_rebalance": "v21 continuation: heavier product/video rec repair, full item replay, and light user replay. Tests whether highest-user checkpoint can recover recommendation metrics.",
-            "v12_product_ad_rec_lite": "v12 continuation: very small product/ad rec repair from the best user2/world checkpoint, plus item replay and small user guard.",
+            "v29_live_specialist_r3": "v29 live-domain specialist: all live-target raw CoT, individualized three-level R3 draft CoT, and no-think direct answers, plus balanced general-rec, item, and user guards.",
+            "v29_balanced_r3_draft": "v29 four-domain cognition specialist: equal target counts for live/ad/product/video in both individualized R3 draft-thinking and direct no-thinking routes, plus item and user guards.",
         },
         "cot_policy": "Preserve /think reasoning supervision and do not use v7_final_only as a CoT training base. For /no_think prompts, train pure final answers without generated <think> tags. This is route-specific behavior, not global CoT removal.",
         "eval_observations": {
@@ -635,6 +656,12 @@ def prepare_datasets() -> dict[str, dict]:
             "v22": "scratch official-base 3 epoch clean CoT underperformed: total=0.8217; item/world preserved but user and rec2 are weak.",
             "v23": "scratch official-base 5 epoch low-LR guard failed badly: total=0.6990; item/user collapse suggests long scratch SFT is not viable with current data mix.",
             "v24": "v15 light repair is best among v22-v24 but still only total=0.8364; user2 improves but rec/world do not recover.",
+            "v25": "v19 product-heavy repair did not beat v19: total=0.8793. Logs show heavy repeated product tokens and repeated short-think phrases; avoid this over-sampling pattern.",
+            "v26": "best latest batch and fastest eval: total=0.8804, eval_time≈45.7min, best user1/rec1. It is useful as a base, but rec2/world dropped.",
+            "v27": "v12 product/ad repair kept user2/world relatively better but was slow and template-heavy: total=0.8563, eval_time≈70.6min. Do not continue this exact direction.",
+            "v28": "v26 no-template repair regressed to total=0.8748 and slowed to 51.7min; broad continuation from v26 did not recover world/rec balance.",
+            "v29": "new best CoT-native model: total=0.9038, eval_time≈45.3min. Strong item/user1/ad/product/world, with live recommendation (0.1054) the clearest remaining gap. Logs still show occasional no-think tag leakage and a repeated generic live-reasoning sentence.",
+            "v30": "three-source soup reached total=0.8846, below v29. It retained speed/world but diluted recommendation scores; do not repeat broad checkpoint averaging.",
             "v16": "CoT pattern rewrite failed: total=0.7912; logs show malformed user JSON and fragmented recommendation reasoning.",
             "v18": "low-LR mixed replay from v12 failed: total=0.8340; item/world dropped and rec outputs mixed text/itemic/think tags.",
         },

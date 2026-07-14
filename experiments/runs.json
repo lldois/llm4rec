@@ -1,38 +1,26 @@
 [
   {
-    "name": "v25_v19_product_world_guard_lr18e6_ep028",
-    "dataset": "v19_product_world_guard",
-    "model_path": "/home/ll/llm4rec/experiments/outputs/v19_v15_dualmode_fast_lr5e6_ep055",
-    "lr": "1.8e-6",
-    "epochs": 0.28,
+    "name": "v31_v29_live_specialist_r3_lr12e6_ep035",
+    "dataset": "v29_live_specialist_r3",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "lr": "1.2e-6",
+    "epochs": 0.35,
     "warmup": 0.02,
     "scheduler": "cosine",
-    "seed": 202607251,
-    "note": "v19 continuation. Ultra-light product-rec repair with item replay and small user guard. Goal: keep v19 fast/item/user1 behavior while recovering product recommendation and avoiding further world-score erosion.",
-    "config": "/home/ll/llm4rec/experiments/configs/v25_v19_product_world_guard_lr18e6_ep028.yaml"
+    "seed": 202607311,
+    "note": "v29 continuation and live-domain specialist. Use diverse evidence-grounded three-level CoT plus strict no-think direct answers for every live-target record, with item/user/general-rec guards. Goal: raise recommendation-live without losing v29's speed or other dimensions.",
+    "config": "/home/ll/llm4rec/experiments/configs/v31_v29_live_specialist_r3_lr12e6_ep035.yaml"
   },
   {
-    "name": "v26_v21_product_rec_rebalance_lr22e6_ep032",
-    "dataset": "v21_product_rec_rebalance",
-    "model_path": "/home/ll/llm4rec/experiments/outputs/v21_v15_user_repair_rec_fast_lr4e6_ep055",
-    "lr": "2.2e-6",
-    "epochs": 0.32,
+    "name": "v32_v29_balanced_r3_draft_lr8e7_ep020",
+    "dataset": "v29_balanced_r3_draft",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "lr": "8.0e-7",
+    "epochs": 0.2,
     "warmup": 0.02,
     "scheduler": "cosine",
-    "seed": 202607261,
-    "note": "v21 continuation. Rec rebalance from the best user1 checkpoint: heavier product/video rec route supervision, item replay, and only light user replay. Goal: preserve user1 while raising rec1/rec2.",
-    "config": "/home/ll/llm4rec/experiments/configs/v26_v21_product_rec_rebalance_lr22e6_ep032.yaml"
-  },
-  {
-    "name": "v27_v12_product_ad_rec_lite_lr16e6_ep03",
-    "dataset": "v12_product_ad_rec_lite",
-    "model_path": "/home/ll/llm4rec/experiments/outputs/v12_user_cot_focus_lr15e6",
-    "lr": "1.6e-6",
-    "epochs": 0.3,
-    "warmup": 0.02,
-    "scheduler": "cosine",
-    "seed": 202607271,
-    "note": "v12 continuation. Tiny product/ad recommendation repair from the strongest user2/world CoT checkpoint. Goal: test whether v12 can gain rec2/rec3 without losing its user2 and world advantages.",
-    "config": "/home/ll/llm4rec/experiments/configs/v27_v12_product_ad_rec_lite_lr16e6_ep03.yaml"
+    "seed": 202607321,
+    "note": "v29 continuation and balanced four-domain R3 specialist. Equalize live/ad/product/video target supervision and train concise individualized interest-evolution-task CoT plus route-correct direct answers. Goal: reduce video dominance and improve recommendation balance while retaining meaningful CoT.",
+    "config": "/home/ll/llm4rec/experiments/configs/v32_v29_balanced_r3_draft_lr8e7_ep020.yaml"
   }
 ]
