@@ -356,5 +356,499 @@
       "v16": "CoT pattern rewrite failed: total=0.7912; logs show malformed user JSON and fragmented recommendation reasoning.",
       "v18": "low-LR mixed replay from v12 failed: total=0.8340; item/world dropped and rec outputs mixed text/itemic/think tags."
     }
+  },
+  "v34_paper_mix": {
+    "name": "v34_paper_mix",
+    "path": "/home/ll/llm4rec/experiments/data/v34_paper_mix.jsonl",
+    "records": 80000,
+    "bytes": 287964112,
+    "sha256": "114013600aa0113ef0ef441bc1ecbd16a8c01f1a77cf76b9d0de16040656da8f",
+    "requested_components": {
+      "general": 30400,
+      "r0": 19000,
+      "r3_think": 6000,
+      "r3_direct": 12000,
+      "old_rec": 5000,
+      "old_user": 3800,
+      "old_item": 3800
+    },
+    "groups": {
+      "general": 30400,
+      "old_rec": 5000,
+      "r3": 18000,
+      "r0": 19000,
+      "old_item": 3800,
+      "old_user": 3800
+    },
+    "variants": {
+      "official_general_cot": 15121,
+      "rec_no_think_direct_final": 2520,
+      "profile_goods_direct": 2647,
+      "caption_to_sid_direct": 9502,
+      "profile_live_cot": 1414,
+      "official_general_direct": 15279,
+      "profile_video/video_cot": 1876,
+      "sid_to_caption_cot": 4746,
+      "item_short_think": 699,
+      "profile_video/video_direct": 3676,
+      "original_competition": 6105,
+      "profile_goods_cot": 1350,
+      "profile_live_direct": 2834,
+      "profile_video/ad_direct": 2843,
+      "sid_to_caption_direct": 4752,
+      "user_strict_array": 666,
+      "item_no_think_direct_final": 670,
+      "profile_video/ad_cot": 1360,
+      "user_strict_logic": 542,
+      "user_extra_no_think_logic": 228,
+      "user_logic_json_strict": 529,
+      "user_array_json_strict": 641
+    },
+    "routes": {
+      "think": 31005,
+      "no_think": 48995
+    },
+    "target_leakage": 0,
+    "seed": 202607151
+  },
+  "v35_cot_r3_balanced": {
+    "name": "v35_cot_r3_balanced",
+    "path": "/home/ll/llm4rec/experiments/data/v35_cot_r3_balanced.jsonl",
+    "records": 80000,
+    "bytes": 310914202,
+    "sha256": "4207a66e3c1e6fe035067e219a3a45243c46a9167f1b912eca13d62ec1cdf192",
+    "requested_components": {
+      "general": 24000,
+      "r0": 12000,
+      "r3_think": 18000,
+      "r3_direct": 14000,
+      "old_rec": 5000,
+      "old_user": 3500,
+      "old_item": 3500
+    },
+    "groups": {
+      "r3": 32000,
+      "old_user": 3500,
+      "general": 24000,
+      "old_rec": 5000,
+      "r0": 12000,
+      "old_item": 3500
+    },
+    "variants": {
+      "profile_goods_direct": 3190,
+      "original_competition": 5884,
+      "official_general_cot": 11903,
+      "user_array_json_strict": 607,
+      "official_general_direct": 12097,
+      "rec_no_think_direct_final": 2500,
+      "profile_live_direct": 3236,
+      "caption_to_sid_direct": 5975,
+      "sid_to_caption_direct": 3085,
+      "sid_to_caption_cot": 2940,
+      "profile_video/ad_direct": 3187,
+      "profile_video/video_direct": 4387,
+      "profile_live_cot": 4191,
+      "profile_goods_cot": 4133,
+      "profile_video/video_cot": 5547,
+      "profile_video/ad_cot": 4129,
+      "user_strict_array": 606,
+      "user_strict_logic": 511,
+      "item_short_think": 629,
+      "item_no_think_direct_final": 577,
+      "user_logic_json_strict": 462,
+      "user_extra_no_think_logic": 224
+    },
+    "routes": {
+      "no_think": 42146,
+      "think": 37854
+    },
+    "target_leakage": 0,
+    "seed": 202607152
+  },
+  "v36_general_guard": {
+    "name": "v36_general_guard",
+    "path": "/home/ll/llm4rec/experiments/data/v36_general_guard.jsonl",
+    "records": 80000,
+    "bytes": 322603609,
+    "sha256": "8aa50ef29b36de4764d1255110a3d1eba6c62e3eaa22636cd92f351cb59d72c2",
+    "requested_components": {
+      "general": 36000,
+      "r0": 12000,
+      "r3_think": 7000,
+      "r3_direct": 10000,
+      "old_rec": 6000,
+      "old_user": 4500,
+      "old_item": 4500
+    },
+    "groups": {
+      "general": 36000,
+      "r0": 12000,
+      "r3": 17000,
+      "old_item": 4500,
+      "old_user": 4500,
+      "old_rec": 6000
+    },
+    "variants": {
+      "official_general_cot": 17998,
+      "caption_to_sid_direct": 5982,
+      "profile_video/ad_cot": 1620,
+      "profile_video/video_cot": 2159,
+      "original_competition": 7355,
+      "profile_goods_direct": 2199,
+      "official_general_direct": 18002,
+      "profile_live_direct": 2330,
+      "profile_video/ad_direct": 2329,
+      "user_strict_logic": 645,
+      "sid_to_caption_cot": 2964,
+      "rec_no_think_direct_final": 2970,
+      "profile_video/video_direct": 3142,
+      "profile_live_cot": 1623,
+      "user_strict_array": 775,
+      "user_array_json_strict": 710,
+      "item_short_think": 779,
+      "sid_to_caption_direct": 3054,
+      "profile_goods_cot": 1598,
+      "user_extra_no_think_logic": 294,
+      "item_no_think_direct_final": 819,
+      "user_logic_json_strict": 653
+    },
+    "routes": {
+      "think": 34086,
+      "no_think": 45914
+    },
+    "target_leakage": 0,
+    "seed": 202607153
+  },
+  "v37_r0_perception": {
+    "name": "v37_r0_perception",
+    "path": "/home/ll/llm4rec/experiments/data/v37_r0_perception.jsonl",
+    "records": 80000,
+    "bytes": 267058830,
+    "sha256": "71579dd6021ab3045524e80275a793d3adcb1b552884209837e77c149d880266",
+    "requested_components": {
+      "general": 24000,
+      "r0": 28000,
+      "r3_think": 8000,
+      "r3_direct": 8000,
+      "old_rec": 4000,
+      "old_user": 4000,
+      "old_item": 4000
+    },
+    "groups": {
+      "r3": 16000,
+      "general": 24000,
+      "r0": 28000,
+      "old_item": 4000,
+      "old_rec": 4000,
+      "old_user": 4000
+    },
+    "variants": {
+      "profile_video/ad_direct": 1832,
+      "official_general_direct": 12089,
+      "sid_to_caption_direct": 6995,
+      "official_general_cot": 11911,
+      "sid_to_caption_cot": 6897,
+      "original_competition": 5843,
+      "caption_to_sid_direct": 14108,
+      "profile_live_cot": 1864,
+      "profile_video/video_direct": 2451,
+      "rec_no_think_direct_final": 2009,
+      "user_strict_logic": 556,
+      "profile_goods_direct": 1859,
+      "profile_video/ad_cot": 1818,
+      "user_logic_json_strict": 573,
+      "profile_video/video_cot": 2471,
+      "item_no_think_direct_final": 721,
+      "item_short_think": 712,
+      "user_strict_array": 660,
+      "profile_goods_cot": 1847,
+      "profile_live_direct": 1858,
+      "user_array_json_strict": 653,
+      "user_extra_no_think_logic": 273
+    },
+    "routes": {
+      "no_think": 48386,
+      "think": 31614
+    },
+    "target_leakage": 0,
+    "seed": 202607154
+  },
+  "v38_r3_aggressive": {
+    "name": "v38_r3_aggressive",
+    "path": "/home/ll/llm4rec/experiments/data/v38_r3_aggressive.jsonl",
+    "records": 80000,
+    "bytes": 305394286,
+    "sha256": "1b53237ca7e35d4c0019b89966b7eec83e6945b643ddc0fe86ed057d90f7b81c",
+    "requested_components": {
+      "general": 20000,
+      "r0": 8000,
+      "r3_think": 20000,
+      "r3_direct": 22000,
+      "old_rec": 4000,
+      "old_user": 3000,
+      "old_item": 3000
+    },
+    "groups": {
+      "r3": 42000,
+      "general": 20000,
+      "old_item": 3000,
+      "old_user": 3000,
+      "old_rec": 4000,
+      "r0": 8000
+    },
+    "variants": {
+      "profile_goods_direct": 5026,
+      "profile_goods_cot": 4597,
+      "official_general_cot": 10049,
+      "profile_video/video_cot": 6131,
+      "profile_video/video_direct": 6741,
+      "original_competition": 4883,
+      "profile_live_direct": 5061,
+      "user_logic_json_strict": 411,
+      "official_general_direct": 9951,
+      "user_strict_array": 503,
+      "caption_to_sid_direct": 3936,
+      "profile_live_cot": 4541,
+      "profile_video/ad_direct": 5172,
+      "rec_no_think_direct_final": 2005,
+      "profile_video/ad_cot": 4731,
+      "sid_to_caption_cot": 2069,
+      "user_extra_no_think_logic": 204,
+      "item_short_think": 516,
+      "item_no_think_direct_final": 555,
+      "sid_to_caption_direct": 1995,
+      "user_array_json_strict": 514,
+      "user_strict_logic": 409
+    },
+    "routes": {
+      "no_think": 43837,
+      "think": 36163
+    },
+    "target_leakage": 0,
+    "seed": 202607155
+  },
+  "v39_curriculum_r0": {
+    "name": "v39_curriculum_r0",
+    "path": "/home/ll/llm4rec/experiments/data/v39_curriculum_r0.jsonl",
+    "records": 70000,
+    "bytes": 218572850,
+    "sha256": "3ea92f76bbf5ed386ef57430df75b428bd43cbb0a1d306de01669d639eca889a",
+    "requested_components": {
+      "general": 32000,
+      "r0": 28000,
+      "old_rec": 4000,
+      "old_user": 3000,
+      "old_item": 3000
+    },
+    "groups": {
+      "r0": 28000,
+      "old_user": 3000,
+      "general": 32000,
+      "old_item": 3000,
+      "old_rec": 4000
+    },
+    "variants": {
+      "caption_to_sid_direct": 13872,
+      "original_competition": 4873,
+      "sid_to_caption_cot": 7029,
+      "official_general_cot": 15959,
+      "official_general_direct": 16041,
+      "item_short_think": 536,
+      "sid_to_caption_direct": 7099,
+      "rec_no_think_direct_final": 1992,
+      "user_strict_array": 524,
+      "item_no_think_direct_final": 507,
+      "user_logic_json_strict": 428,
+      "user_array_json_strict": 537,
+      "user_extra_no_think_logic": 200,
+      "user_strict_logic": 403
+    },
+    "routes": {
+      "no_think": 42921,
+      "think": 27079
+    },
+    "target_leakage": 0,
+    "seed": 202607156
+  },
+  "v39_curriculum_r3": {
+    "name": "v39_curriculum_r3",
+    "path": "/home/ll/llm4rec/experiments/data/v39_curriculum_r3.jsonl",
+    "records": 70000,
+    "bytes": 263483139,
+    "sha256": "fb38ffd99b1ed61bbca834a85af32e3bb557aeba6a8b05f134ab5b99c16a22da",
+    "requested_components": {
+      "general": 22000,
+      "r0": 6000,
+      "r3_think": 16000,
+      "r3_direct": 18000,
+      "old_rec": 3000,
+      "old_user": 2500,
+      "old_item": 2500
+    },
+    "groups": {
+      "general": 22000,
+      "r3": 34000,
+      "old_rec": 3000,
+      "old_user": 2500,
+      "r0": 6000,
+      "old_item": 2500
+    },
+    "variants": {
+      "official_general_direct": 10947,
+      "profile_live_direct": 4236,
+      "profile_video/ad_cot": 3722,
+      "profile_live_cot": 3715,
+      "original_competition": 3943,
+      "user_strict_logic": 357,
+      "profile_video/video_direct": 5603,
+      "caption_to_sid_direct": 2978,
+      "profile_video/video_cot": 4939,
+      "profile_goods_cot": 3624,
+      "official_general_cot": 11053,
+      "profile_video/ad_direct": 4171,
+      "profile_goods_direct": 3990,
+      "rec_no_think_direct_final": 1484,
+      "sid_to_caption_cot": 1530,
+      "sid_to_caption_direct": 1492,
+      "item_no_think_direct_final": 429,
+      "user_array_json_strict": 402,
+      "item_short_think": 417,
+      "user_logic_json_strict": 364,
+      "user_strict_array": 429,
+      "user_extra_no_think_logic": 175
+    },
+    "routes": {
+      "no_think": 38178,
+      "think": 31822
+    },
+    "target_leakage": 0,
+    "seed": 202607157
+  },
+  "v41_baseline_general": {
+    "name": "v41_baseline_general",
+    "path": "/home/ll/llm4rec/experiments/data/v41_baseline_general.jsonl",
+    "records": 80000,
+    "bytes": 482190982,
+    "sha256": "82e09565761de669ade898e8a1f743ab8e72da7e34b6effa1c780cdf12ecf007",
+    "requested_components": {
+      "general": 32000,
+      "r0": 8000,
+      "old_rec": 22000,
+      "old_user": 8000,
+      "old_item": 10000
+    },
+    "groups": {
+      "general": 32000,
+      "old_item": 10000,
+      "old_user": 8000,
+      "r0": 8000,
+      "old_rec": 22000
+    },
+    "variants": {
+      "official_general_cot": 15976,
+      "official_general_direct": 16024,
+      "original_competition": 19997,
+      "sid_to_caption_direct": 2051,
+      "item_no_think_direct_final": 1725,
+      "rec_no_think_direct_final": 11007,
+      "item_short_think": 1757,
+      "user_extra_no_think_logic": 514,
+      "caption_to_sid_direct": 3990,
+      "sid_to_caption_cot": 1959,
+      "user_strict_array": 1360,
+      "user_logic_json_strict": 1129,
+      "user_strict_logic": 1128,
+      "user_array_json_strict": 1383
+    },
+    "routes": {
+      "think": 35508,
+      "no_think": 44492
+    },
+    "target_leakage": 0,
+    "seed": 202607158
+  },
+  "v42_user_evolution": {
+    "name": "v42_user_evolution",
+    "path": "/home/ll/llm4rec/experiments/data/v42_user_evolution.jsonl",
+    "records": 75000,
+    "bytes": 381438256,
+    "sha256": "d4dcc5f06f9e32b0d781e29d2b6965ffc8683fc9b63e1d2533322535cfd73fde",
+    "requested_components": {
+      "general": 26000,
+      "r0": 6000,
+      "r3_think": 12000,
+      "r3_direct": 12000,
+      "old_rec": 5000,
+      "old_user": 9000,
+      "old_item": 5000
+    },
+    "groups": {
+      "general": 26000,
+      "r3": 24000,
+      "old_user": 9000,
+      "old_item": 5000,
+      "old_rec": 5000,
+      "r0": 6000
+    },
+    "variants": {
+      "official_general_cot": 13010,
+      "profile_video/video_cot": 3756,
+      "official_general_direct": 12990,
+      "original_competition": 8591,
+      "profile_goods_cot": 2593,
+      "profile_goods_direct": 2680,
+      "user_array_json_strict": 1530,
+      "item_no_think_direct_final": 883,
+      "rec_no_think_direct_final": 2473,
+      "profile_video/video_direct": 3677,
+      "sid_to_caption_cot": 1487,
+      "caption_to_sid_direct": 3020,
+      "profile_live_cot": 2827,
+      "user_strict_logic": 1274,
+      "user_strict_array": 1537,
+      "sid_to_caption_direct": 1493,
+      "profile_live_direct": 2850,
+      "profile_video/ad_direct": 2793,
+      "profile_video/ad_cot": 2824,
+      "item_short_think": 865,
+      "user_logic_json_strict": 1260,
+      "user_extra_no_think_logic": 587
+    },
+    "routes": {
+      "think": 33240,
+      "no_think": 41760
+    },
+    "target_leakage": 0,
+    "seed": 202607159
+  },
+  "_sources": {
+    "official_explorer": {
+      "external_root": "/home/ll/llm4rec/data/Explorer_LLM_Rec_Competition",
+      "profiles_sampled": 29467,
+      "required_pid_domain_keys": 910295,
+      "profile_captions": 785690,
+      "r0_caption_candidates": 75911,
+      "mapped_sids": 905065,
+      "tags": 365370,
+      "pool_counts": {
+        "old_rec": 38408,
+        "old_user": 9278,
+        "old_item": 15981,
+        "general": 60000,
+        "r0": 151822,
+        "r3_think": 90259,
+        "r3_direct": 90259
+      },
+      "r3": {
+        "domain_targets": {
+          "video/video": 27688,
+          "goods": 20451,
+          "live": 21161,
+          "video/ad": 20959
+        },
+        "target_leakage_dropped": 0
+      },
+      "policy": "CoT retained; target SID forbidden in prompt and reasoning; direct /no_think outputs contain only the final target."
+    }
   }
 }

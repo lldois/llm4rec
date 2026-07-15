@@ -9,7 +9,10 @@
     "scheduler": "cosine",
     "seed": 202607311,
     "note": "v29 continuation and live-domain specialist. Use diverse evidence-grounded three-level CoT plus strict no-think direct answers for every live-target record, with item/user/general-rec guards. Goal: raise recommendation-live without losing v29's speed or other dimensions.",
-    "config": "/home/ll/llm4rec/experiments/configs/v31_v29_live_specialist_r3_lr12e6_ep035.yaml"
+    "batch": "v31-v32",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v31_v29_live_specialist_r3_lr12e6_ep035.yaml"
+    ]
   },
   {
     "name": "v32_v29_balanced_r3_draft_lr8e7_ep020",
@@ -21,6 +24,165 @@
     "scheduler": "cosine",
     "seed": 202607321,
     "note": "v29 continuation and balanced four-domain R3 specialist. Equalize live/ad/product/video target supervision and train concise individualized interest-evolution-task CoT plus route-correct direct answers. Goal: reduce video dominance and improve recommendation balance while retaining meaningful CoT.",
-    "config": "/home/ll/llm4rec/experiments/configs/v32_v29_balanced_r3_draft_lr8e7_ep020.yaml"
+    "batch": "v31-v32",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v32_v29_balanced_r3_draft_lr8e7_ep020.yaml"
+    ]
+  },
+  {
+    "name": "v33_task_arith_v29_live55_r325",
+    "batch": "v31-v33",
+    "method": "task_arithmetic",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "sources": [
+      "v31_v29_live_specialist_r3_lr12e6_ep035",
+      "v32_v29_balanced_r3_draft_lr8e7_ep020"
+    ],
+    "formula": "theta_v29 + 0.55*(theta_v31-theta_v29) + 0.25*(theta_v32-theta_v29)",
+    "note": "CoT-native task arithmetic from the shared v29 base; no v7 source.",
+    "output_dir": "/home/ll/llm4rec/experiments/outputs/v33_task_arith_v29_live55_r325"
+  },
+  {
+    "name": "v34_v29_paper_mix_lr5e7_ep10",
+    "dataset": "v34_paper_mix",
+    "lr": "5.0e-7",
+    "epochs": 1.0,
+    "seed": 202607184,
+    "note": "Anchor run using a scaled OneReason-like R0/R3/general mixture plus old-task replay.",
+    "batch": "v34-v43",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v34_v29_paper_mix_lr5e7_ep10.yaml"
+    ]
+  },
+  {
+    "name": "v35_v29_cot_r3_balanced_lr6e7_ep10",
+    "dataset": "v35_cot_r3_balanced",
+    "lr": "6.0e-7",
+    "epochs": 1.0,
+    "seed": 202607185,
+    "note": "Higher R3 CoT ratio with compact Persona-Expansion-Transition traces and direct-route balance.",
+    "batch": "v34-v43",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v35_v29_cot_r3_balanced_lr6e7_ep10.yaml"
+    ]
+  },
+  {
+    "name": "v36_v29_general_guard_lr4e7_ep12",
+    "dataset": "v36_general_guard",
+    "lr": "4.0e-7",
+    "epochs": 1.2,
+    "seed": 202607186,
+    "note": "General-heavy replay explicitly targeting the world-score forgetting seen in v31-v33.",
+    "batch": "v34-v43",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v36_v29_general_guard_lr4e7_ep12.yaml"
+    ]
+  },
+  {
+    "name": "v37_v29_r0_perception_lr6e7_ep10",
+    "dataset": "v37_r0_perception",
+    "lr": "6.0e-7",
+    "epochs": 1.0,
+    "seed": 202607187,
+    "note": "R0-heavy bidirectional caption/SID grounding to improve item perception and downstream recommendation semantics.",
+    "batch": "v34-v43",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v37_v29_r0_perception_lr6e7_ep10.yaml"
+    ]
+  },
+  {
+    "name": "v38_v29_r3_aggressive_lr7e7_ep10",
+    "dataset": "v38_r3_aggressive",
+    "lr": "7.0e-7",
+    "epochs": 1.0,
+    "seed": 202607188,
+    "note": "Highest R3 share, trained on real temporal holdouts from official user profiles with target leakage blocked.",
+    "batch": "v34-v43",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v38_v29_r3_aggressive_lr7e7_ep10.yaml"
+    ]
+  },
+  {
+    "name": "v39_v29_curriculum_r0_to_r3_lr6e7_ep08x2",
+    "dataset": "v39_curriculum_r3",
+    "lr": "5.0e-7",
+    "epochs": 0.8,
+    "seed": 202607189,
+    "note": "Two-stage curriculum: 0.8 epoch R0/general alignment followed by 0.8 epoch R3/general cognition.",
+    "stages": [
+      {
+        "dataset": "v39_curriculum_r0",
+        "lr": "6.0e-7",
+        "epochs": 0.8
+      },
+      {
+        "dataset": "v39_curriculum_r3",
+        "lr": "5.0e-7",
+        "epochs": 0.8
+      }
+    ],
+    "batch": "v34-v43",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v39_v29_curriculum_r0_to_r3_lr6e7_ep08x2_stage1.yaml",
+      "/home/ll/llm4rec/experiments/configs/v39_v29_curriculum_r0_to_r3_lr6e7_ep08x2_stage2.yaml"
+    ]
+  },
+  {
+    "name": "v40_scratch_source_paper_mix_lr3e6_ep15",
+    "dataset": "v34_paper_mix",
+    "lr": "3.0e-6",
+    "epochs": 1.5,
+    "seed": 202607190,
+    "note": "High-risk restart from the official pretrained checkpoint using the new source-data mixture.",
+    "batch": "v34-v43",
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v40_scratch_source_paper_mix_lr3e6_ep15.yaml"
+    ]
+  },
+  {
+    "name": "v41_v29_baseline_general_replay_lr4e7_ep10",
+    "dataset": "v41_baseline_general",
+    "lr": "4.0e-7",
+    "epochs": 1.0,
+    "seed": 202607191,
+    "note": "Control run dominated by original competition supervision and general replay, with no profile-derived R3.",
+    "batch": "v34-v43",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v41_v29_baseline_general_replay_lr4e7_ep10.yaml"
+    ]
+  },
+  {
+    "name": "v42_v29_user_evolution_guard_lr5e7_ep10",
+    "dataset": "v42_user_evolution",
+    "lr": "5.0e-7",
+    "epochs": 1.0,
+    "seed": 202607192,
+    "note": "Protects structured user extraction/evolution formats while adding real-holdout R3 and general replay.",
+    "batch": "v34-v43",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v42_v29_user_evolution_guard_lr5e7_ep10.yaml"
+    ]
+  },
+  {
+    "name": "v43_v29_paper_mix_low_lr25e7_ep15",
+    "dataset": "v34_paper_mix",
+    "lr": "2.5e-7",
+    "epochs": 1.5,
+    "seed": 202607193,
+    "note": "Controlled long, low-LR exposure on exactly the same data as v34.",
+    "batch": "v34-v43",
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v43_v29_paper_mix_low_lr25e7_ep15.yaml"
+    ]
   }
 ]

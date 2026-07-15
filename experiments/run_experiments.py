@@ -12,6 +12,7 @@ can be recreated from the raw competition jsonl files.
 
 from __future__ import annotations
 
+import argparse
 import json
 import hashlib
 import os
@@ -84,6 +85,164 @@ RUNS = [
         "note": "v29 continuation and balanced four-domain R3 specialist. Equalize live/ad/product/video target supervision and train concise individualized interest-evolution-task CoT plus route-correct direct answers. Goal: reduce video dominance and improve recommendation balance while retaining meaningful CoT.",
     },
 ]
+
+DERIVED_RUNS = [
+    {
+        "name": "v33_task_arith_v29_live55_r325",
+        "batch": "v31-v33",
+        "method": "task_arithmetic",
+        "model_path": str((OUTPUT_DIR / "v29_v19_user_world_guard_lr8e7_ep018").resolve()),
+        "sources": [
+            "v31_v29_live_specialist_r3_lr12e6_ep035",
+            "v32_v29_balanced_r3_draft_lr8e7_ep020",
+        ],
+        "formula": "theta_v29 + 0.55*(theta_v31-theta_v29) + 0.25*(theta_v32-theta_v29)",
+        "note": "CoT-native task arithmetic from the shared v29 base; no v7 source.",
+        "output_dir": str((OUTPUT_DIR / "v33_task_arith_v29_live55_r325").resolve()),
+    }
+]
+
+
+def source_runs() -> list[dict]:
+    import source_data
+
+    return source_data.SOURCE_RUNS
+
+
+def registry_entry(run: dict, batch: str) -> dict:
+    entry = dict(run)
+    entry["batch"] = entry.get("batch", batch)
+    if "model" in entry:
+        entry["model_path"] = entry.pop("model")
+    if "configs" not in entry:
+        if entry.get("stages"):
+            entry["configs"] = [
+                str((CONFIG_DIR / f"{entry['name']}_stage{index}.yaml").resolve())
+                for index, _ in enumerate(entry["stages"], 1)
+            ]
+        elif entry.get("method") is None:
+            entry["configs"] = [str((CONFIG_DIR / f"{entry['name']}.yaml").resolve())]
+    entry.pop("config", None)
+    return entry
+
+
+def all_runs() -> list[dict]:
+    runs = [registry_entry(run, "v31-v32") for run in RUNS]
+    runs.extend(registry_entry(run, "v34-v43") for run in source_runs())
+    runs.extend(dict(run) for run in DERIVED_RUNS)
+    return sorted(runs, key=lambda item: int(re.match(r"v(\d+)", item["name"]).group(1)))
+
+
+def write_run_registry() -> None:
+    (EXP / "runs.json").write_text(json.dumps(all_runs(), ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def merge_manifest(entries: dict) -> dict:
+    path = DATA_DIR / "manifest.json"
+    manifest = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    source_meta = entries.get("_source")
+    for name, value in entries.items():
+        if not name.startswith("_"):
+            manifest[name] = value
+        elif name != "_source":
+            manifest[name] = value
+    if source_meta:
+        manifest.setdefault("_sources", {})["official_explorer"] = source_meta
+    path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    return manifest
+
+
+def merge_results(results: list[dict]) -> list[dict]:
+    path = LOG_DIR / "summary.json"
+    current = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    merged = {item["name"]: item for item in current}
+    registry = {item["name"]: item for item in all_runs()}
+    for result in results:
+        item = dict(result)
+        run = registry.get(item["name"], {})
+        for key in ("batch", "dataset", "model_path", "lr", "epochs", "stages", "note", "method", "output_dir"):
+            if key not in item and run.get(key) is not None:
+                item[key] = run[key]
+        item.setdefault("output_dir", str((OUTPUT_DIR / item["name"]).resolve()))
+        merged[item["name"]] = item
+    ordered = sorted(merged.values(), key=lambda item: int(re.match(r"v(\d+)", item["name"]).group(1)))
+    path.write_text(json.dumps(ordered, ensure_ascii=False, indent=2), encoding="utf-8")
+    return ordered
+
+
+def write_unified_summary() -> None:
+    manifest_path = DATA_DIR / "manifest.json"
+    results_path = LOG_DIR / "summary.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
+    results = json.loads(results_path.read_text(encoding="utf-8")) if results_path.exists() else []
+    registry = {item["name"]: item for item in all_runs()}
+
+    lines = [
+        "# LLM4Rec Experiment Summary",
+        "",
+        f"Updated: {stamp()}",
+        "",
+        "## Dataset Variants",
+    ]
+    for name, meta in manifest.items():
+        if name.startswith("_"):
+            continue
+        lines.append(
+            f"- `{name}`: {meta.get('records', '?')} records, groups={meta.get('groups', {})}, "
+            f"sha256={meta.get('sha256', '')}"
+        )
+    lines.extend([
+        "",
+        "## Runs",
+        "| version | batch | base | dataset | lr | epochs | train loss | runtime min | status |",
+        "|---|---|---|---|---:|---:|---:|---:|---|",
+    ])
+    for result in results:
+        run = registry.get(result["name"], {})
+        base = result.get("model_path", run.get("model_path", ""))
+        if base == "OpenOneRec/OneReason-0.8B-pretrain-competition":
+            base = "official-pretrain"
+        elif base:
+            base = Path(base).name
+        stages = result.get("stages", run.get("stages"))
+        epochs = " + ".join(str(stage["epochs"]) for stage in stages) if stages else result.get("epochs", run.get("epochs", ""))
+        loss = result.get("train_loss", "")
+        loss_text = f"{loss:.4f}" if isinstance(loss, (int, float)) else str(loss)
+        runtime = result.get("wall_seconds", result.get("train_runtime"))
+        runtime_text = f"{runtime / 60:.2f}" if isinstance(runtime, (int, float)) else ""
+        lines.append(
+            f"| {result['name']} | {result.get('batch', run.get('batch', ''))} | {base} | "
+            f"{result.get('dataset', run.get('dataset', ''))} | {result.get('lr', run.get('lr', ''))} | "
+            f"{epochs} | {loss_text} | {runtime_text} | {result.get('status', '')} |"
+        )
+
+    lines.extend(["", "## Derived Models"])
+    for run in DERIVED_RUNS:
+        lines.append(f"- `{run['name']}`: {run['formula']}. {run['note']}")
+    lines.extend(["", "## Run Notes"])
+    for name, run in registry.items():
+        if run.get("note"):
+            lines.append(f"- `{name}`: {run['note']}")
+    lines.extend([
+        "",
+        "## v34-v43 Evaluation Order",
+        "",
+        "1. v34 anchor paper mixture",
+        "2. v38 aggressive R3",
+        "3. v39 perception-first curriculum",
+        "4. v43 low-LR long-dose anchor",
+        "5. v36 general guard",
+        "6. v35 CoT-heavy R3",
+        "7. v37 perception-heavy",
+        "8. v42 user guard",
+        "9. v41 original-data control",
+        "10. v40 scratch high-risk model",
+        "",
+        "## Notes",
+        "- Ranking by train loss is only a training-health signal; use leaderboard evaluation for model selection.",
+        "- Generated experiment JSONL and model outputs are ignored by git; JSONL can be rebuilt through the unified runner.",
+    ])
+    (LOG_DIR / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def now() -> datetime:
@@ -666,10 +825,7 @@ def prepare_datasets() -> dict[str, dict]:
             "v18": "low-LR mixed replay from v12 failed: total=0.8340; item/world dropped and rec outputs mixed text/itemic/think tags.",
         },
     }
-    (DATA_DIR / "manifest.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    merge_manifest(manifest)
     return manifest
 
 
@@ -747,7 +903,7 @@ def prepare_configs() -> None:
     for run in RUNS:
         run["config"] = str((CONFIG_DIR / f"{run['name']}.yaml").resolve())
         (CONFIG_DIR / f"{run['name']}.yaml").write_text(yaml_for(run), encoding="utf-8")
-    (EXP / "runs.json").write_text(json.dumps(RUNS, ensure_ascii=False, indent=2), encoding="utf-8")
+    write_run_registry()
 
 
 def write_experiment_recipes(manifest: dict[str, dict]) -> None:
@@ -767,8 +923,8 @@ def write_experiment_recipes(manifest: dict[str, dict]) -> None:
             "script_sha256": script_sha,
             "deadline": deadline_label(),
             "reproduce": {
-                "prepare_command": "EXPERIMENT_PREPARE_ONLY=1 python3 experiments/run_experiments.py",
-                "train_command": f"CUDA_VISIBLE_DEVICES=<gpu> bash -lc 'source {VENV}/bin/activate && llamafactory-cli train {run['config']}'",
+                "prepare_command": f"{VENV}/bin/python {Path(__file__).resolve()} --single {run['name']} --gpu <gpu> --prepare-only",
+                "train_command": f"{VENV}/bin/python {Path(__file__).resolve()} --single {run['name']} --gpu <gpu>",
             },
         }
         (out / "experiment_recipe.json").write_text(
@@ -853,57 +1009,10 @@ def parse_result(run: dict) -> dict:
 
 def write_summary(results: list[dict], manifest: dict) -> None:
     LOG_DIR.mkdir(parents=True, exist_ok=True)
-    summary_json = LOG_DIR / "summary.json"
+    merge_manifest(manifest)
+    merge_results(results)
+    write_unified_summary()
     summary_md = LOG_DIR / "summary.md"
-    summary_json.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
-
-    rows = []
-    for item in results:
-        rows.append(
-            "| {name} | {dataset} | {lr} | {epochs} | {scheduler} | {train_loss} | {last_loss} | {runtime} | {status} |".format(
-                name=item.get("name", ""),
-                dataset=item.get("dataset", ""),
-                lr=item.get("lr", ""),
-                epochs=item.get("epochs", ""),
-                scheduler=item.get("scheduler", ""),
-                train_loss=f"{item.get('train_loss', ''):.4f}" if isinstance(item.get("train_loss"), (int, float)) else item.get("train_loss", ""),
-                last_loss=f"{item.get('last_logged_loss', ''):.4f}" if isinstance(item.get("last_logged_loss"), (int, float)) else item.get("last_logged_loss", ""),
-                runtime=f"{item.get('train_runtime', ''):.1f}s" if isinstance(item.get("train_runtime"), (int, float)) else item.get("train_runtime", ""),
-                status=item.get("status", "ok" if item.get("train_loss") is not None else ""),
-            )
-        )
-
-    dataset_lines = []
-    for name, meta in manifest.items():
-        if name.startswith("_"):
-            continue
-        dataset_lines.append(
-            f"- `{name}`: {meta['records']} records, groups={meta['groups']}, "
-            f"variants={meta.get('variants', {})}, sha256={meta.get('sha256', '')}"
-        )
-
-    md = [
-        "# LLM4Rec Experiment Summary",
-        "",
-        f"Generated: {stamp()}",
-        f"Hard deadline: {deadline_label()}",
-        "",
-        "## Dataset Variants",
-        *dataset_lines,
-        "",
-        "## Runs",
-        "| version | dataset | lr | epochs | scheduler | train_loss | last_logged_loss | runtime | status |",
-        "|---|---:|---:|---:|---|---:|---:|---:|---|",
-        *rows,
-        "",
-        "## Run Notes",
-        *[f"- `{item.get('name')}`: {item.get('note', '')}" for item in results],
-        "",
-        "## Notes",
-        "- Ranking by train loss is only a rough sanity signal because no held-out leaderboard metric is available locally.",
-        "- Prefer comparing generated behavior on the official validation/upload flow tomorrow if available.",
-    ]
-    summary_md.write_text("\n".join(md) + "\n", encoding="utf-8")
 
     append(
         TOP_LOG,
@@ -1053,9 +1162,11 @@ def cleanup_generated_datasets(status_path: Path) -> None:
     )
 
 
-def main() -> int:
+def run_legacy_experiments(*, single: str | None = None, gpu: int = 0, prepare_only: bool = False) -> int:
     for path in [DATA_DIR, CONFIG_DIR, OUTPUT_DIR, LOG_DIR]:
         path.mkdir(parents=True, exist_ok=True)
+
+    selected_runs = RUNS if single is None else [next(run for run in RUNS if run["name"] == single)]
 
     append(
         TOP_LOG,
@@ -1073,7 +1184,8 @@ def main() -> int:
             {
                 "time": stamp(),
                 "event": "prepared",
-                "runs": [r["name"] for r in RUNS],
+                "batch": "v31-v32",
+                "runs": [r["name"] for r in selected_runs],
                 "deadline": deadline_label(),
                 "heartbeat_seconds": HEARTBEAT_SECONDS,
                 "manifest": str((DATA_DIR / "manifest.json").resolve()),
@@ -1083,7 +1195,7 @@ def main() -> int:
         + "\n",
     )
 
-    if os.environ.get("EXPERIMENT_PREPARE_ONLY", "").strip() == "1":
+    if prepare_only or os.environ.get("EXPERIMENT_PREPARE_ONLY", "").strip() == "1":
         append(
             status_path,
             json.dumps(
@@ -1100,12 +1212,13 @@ def main() -> int:
         append(TOP_LOG, f"[{stamp()}] prepare-only completed; no training launched.\n")
         return 0
 
-    queue = list(RUNS)
+    queue = list(selected_runs)
     results: list[dict] = []
     lock = threading.Lock()
+    gpus = [gpu] if single else [0, 1]
     threads = [
-        threading.Thread(target=worker, args=(0, queue, lock, results, status_path), daemon=False),
-        threading.Thread(target=worker, args=(1, queue, lock, results, status_path), daemon=False),
+        threading.Thread(target=worker, args=(worker_gpu, queue, lock, results, status_path), daemon=False)
+        for worker_gpu in gpus
     ]
     for thread in threads:
         thread.start()
@@ -1132,12 +1245,52 @@ def main() -> int:
     for thread in threads:
         thread.join()
 
-    run_order = {run["name"]: i for i, run in enumerate(RUNS)}
+    run_order = {run["name"]: i for i, run in enumerate(selected_runs)}
     results.sort(key=lambda x: run_order.get(x.get("name", ""), 999))
     write_summary(results, manifest)
     cleanup_generated_datasets(status_path)
     append(status_path, json.dumps({"time": stamp(), "event": "all_done"}, ensure_ascii=False) + "\n")
     return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    trainable = RUNS + source_runs()
+    parser = argparse.ArgumentParser(description="Unified LLM4Rec experiment runner")
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument("--batch", choices=["v31-v32", "v34-v43"])
+    selection.add_argument("--single", choices=[run["name"] for run in trainable])
+    selection.add_argument("--list", action="store_true", help="list registered experiments without training")
+    selection.add_argument("--rebuild-index", action="store_true", help="rebuild shared metadata files without preparing data or training")
+    parser.add_argument("--gpu", type=int, choices=[0, 1], default=0, help="GPU used by --single")
+    parser.add_argument("--prepare-only", action="store_true", help="generate data/configs but do not train")
+    return parser
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    if args.list:
+        for run in all_runs():
+            print(f"{run['name']}\t{run.get('batch', '')}\t{run.get('method', 'train')}")
+        return 0
+    if args.rebuild_index:
+        write_run_registry()
+        write_unified_summary()
+        return 0
+    if not args.batch and not args.single:
+        parser.print_help()
+        return 0
+
+    source_names = {run["name"] for run in source_runs()}
+    if args.batch == "v34-v43" or args.single in source_names:
+        import source_data
+
+        return source_data.run_source_experiments(
+            single=args.single,
+            gpu=args.gpu,
+            prepare_only=args.prepare_only,
+        )
+    return run_legacy_experiments(single=args.single, gpu=args.gpu, prepare_only=args.prepare_only)
 
 
 if __name__ == "__main__":

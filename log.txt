@@ -315,3 +315,50 @@ run baseline
 - cleanup: generated experiment jsonl files removed; only experiments/data/manifest.json remains; no checkpoint-* directories under v31-v33.
 - gpu_release: GPU0=163MiB/0%, GPU1=15MiB/0%.
 - suggested leaderboard order: v33 first (unified candidate), v31 second (direct live-specialist ablation), v32 third (balanced R3 ablation).
+
+[2026-07-15 00:31-00:59] full-dose v34-v43 preparation
+- deleted the previous low-dose v34-v43 outputs, configs, recipes, and generated data.
+- preflight validation repaired an underfilled general pool and missing goods target fields before the clean formal launch at 00:59.
+- all preflight partial outputs and caches were removed; they are not part of the ten formal results below.
+
+[2026-07-15 08:06:20] full-dose v34-v43 batch completed
+- summary=/home/ll/llm4rec/experiments/logs/summary.md
+- manifest=/home/ll/llm4rec/experiments/data/manifest.json
+- v34_v29_paper_mix_lr5e7_ep10: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v34_paper_mix, lr=5.0e-7, epochs=1.0, train_loss=1.8975331122133912, runtime=3794.81s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v34_v29_paper_mix_lr5e7_ep10
+  note=Anchor run using a scaled OneReason-like R0/R3/general mixture plus old-task replay.
+- v35_v29_cot_r3_balanced_lr6e7_ep10: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v35_cot_r3_balanced, lr=6.0e-7, epochs=1.0, train_loss=2.076033425085323, runtime=3778.32s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v35_v29_cot_r3_balanced_lr6e7_ep10
+  note=Higher R3 CoT ratio with compact Persona-Expansion-Transition traces and direct-route balance.
+- v36_v29_general_guard_lr4e7_ep12: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v36_general_guard, lr=4.0e-7, epochs=1.2, train_loss=1.8869445338661288, runtime=5107.76s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v36_v29_general_guard_lr4e7_ep12
+  note=General-heavy replay explicitly targeting the world-score forgetting seen in v31-v33.
+- v37_v29_r0_perception_lr6e7_ep10: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v37_r0_perception, lr=6.0e-7, epochs=1.0, train_loss=1.9281885245235708, runtime=3570.24s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v37_v29_r0_perception_lr6e7_ep10
+  note=R0-heavy bidirectional caption/SID grounding to improve item perception and downstream recommendation semantics.
+- v38_v29_r3_aggressive_lr7e7_ep10: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v38_r3_aggressive, lr=7.0e-7, epochs=1.0, train_loss=2.143569690286467, runtime=3590.1s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v38_v29_r3_aggressive_lr7e7_ep10
+  note=Highest R3 share, trained on real temporal holdouts from official user profiles with target leakage blocked.
+- v39_v29_curriculum_r0_to_r3_lr6e7_ep08x2: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, datasets=v39_curriculum_r0->v39_curriculum_r3, lr=6.0e-7->5.0e-7, epochs=0.8+0.8, stage2_train_loss=2.1087728360804117, runtime=4975.71s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v39_v29_curriculum_r0_to_r3_lr6e7_ep08x2
+  note=Two-stage curriculum: 0.8 epoch R0/general alignment followed by 0.8 epoch R3/general cognition.
+- v40_scratch_source_paper_mix_lr3e6_ep15: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v34_paper_mix, lr=3.0e-6, epochs=1.5, train_loss=1.8137206637224896, runtime=5669.58s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v40_scratch_source_paper_mix_lr3e6_ep15
+  note=High-risk restart from the official pretrained checkpoint using the new source-data mixture.
+- v41_v29_baseline_general_replay_lr4e7_ep10: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v41_baseline_general, lr=4.0e-7, epochs=1.0, train_loss=1.7103283592543677, runtime=6198.82s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v41_v29_baseline_general_replay_lr4e7_ep10
+  note=Control run dominated by original competition supervision and general replay, with no profile-derived R3.
+- v42_v29_user_evolution_guard_lr5e7_ep10: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v42_user_evolution, lr=5.0e-7, epochs=1.0, train_loss=1.9069785443783536, runtime=5440.53s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v42_v29_user_evolution_guard_lr5e7_ep10
+  note=Protects structured user extraction/evolution formats while adding real-holdout R3 and general replay.
+- v43_v29_paper_mix_low_lr25e7_ep15: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v34_paper_mix, lr=2.5e-7, epochs=1.5, train_loss=1.907181319736299, runtime=5562.03s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v43_v29_paper_mix_low_lr25e7_ep15
+  note=Controlled long, low-LR exposure on exactly the same data as v34.
+- cleanup: generated_jsonl=9, arrow_caches=9; checkpoints=none expected.
+- validation_errors=[]
+
+[2026-07-15 08:10] final verification for v34-v43
+- preflight: two attempts were intentionally aborted before the formal 00:59 launch after detecting an underfilled general pool and missing goods target fields; all partial outputs and caches were deleted.
+- weights: 10/10 model.safetensors files opened successfully; each is 1,602,902,832 bytes with 311 tensors.
+- data integrity: target leakage=0; no generated experiment JSONL, matching Arrow cache, v39 temporary stage, or checkpoint-* directory remains.
+- gpu_release: GPU0=163MiB/0%, GPU1=15MiB/0%; no training or supervisor process remains.
+- suggested leaderboard order: v34, v38, v39, v43, v36, v35, v37, v42, v41, v40.
+
+[2026-07-15 23:13:14] consolidated v34-v43 metadata into the shared experiment structure
+- runner: /home/ll/llm4rec/experiments/run_experiments.py
+- internal source-data builder: /home/ll/llm4rec/experiments/source_data.py
+- registry: /home/ll/llm4rec/experiments/runs.json
+- manifest: /home/ll/llm4rec/experiments/data/manifest.json
+- results and summary: /home/ll/llm4rec/experiments/logs/summary.json and summary.md
+- status history: /home/ll/llm4rec/experiments/logs/supervisor_status.jsonl
+- no model was retrained or modified during this migration.
