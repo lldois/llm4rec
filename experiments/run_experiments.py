@@ -106,7 +106,7 @@ DERIVED_RUNS = [
 def source_runs() -> list[dict]:
     import source_data
 
-    return source_data.SOURCE_RUNS
+    return source_data.all_source_runs()
 
 
 def registry_entry(run: dict, batch: str) -> dict:
@@ -128,7 +128,7 @@ def registry_entry(run: dict, batch: str) -> dict:
 
 def all_runs() -> list[dict]:
     runs = [registry_entry(run, "v31-v32") for run in RUNS]
-    runs.extend(registry_entry(run, "v34-v43") for run in source_runs())
+    runs.extend(registry_entry(run, run.get("batch", "v34-v43")) for run in source_runs())
     runs.extend(dict(run) for run in DERIVED_RUNS)
     return sorted(runs, key=lambda item: int(re.match(r"v(\d+)", item["name"]).group(1)))
 
@@ -194,8 +194,8 @@ def write_unified_summary() -> None:
     lines.extend([
         "",
         "## Runs",
-        "| version | batch | base | dataset | lr | epochs | train loss | runtime min | status |",
-        "|---|---|---|---|---:|---:|---:|---:|---|",
+        "| version | batch | method | base | dataset | lr | epochs | steps | train loss | eval loss | runtime min | status |",
+        "|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---|",
     ])
     for result in results:
         run = registry.get(result["name"], {})
@@ -210,10 +210,12 @@ def write_unified_summary() -> None:
         loss_text = f"{loss:.4f}" if isinstance(loss, (int, float)) else str(loss)
         runtime = result.get("wall_seconds", result.get("train_runtime"))
         runtime_text = f"{runtime / 60:.2f}" if isinstance(runtime, (int, float)) else ""
+        eval_loss = result.get("eval_loss", "")
+        eval_loss_text = f"{eval_loss:.4f}" if isinstance(eval_loss, (int, float)) else str(eval_loss)
         lines.append(
-            f"| {result['name']} | {result.get('batch', run.get('batch', ''))} | {base} | "
+            f"| {result['name']} | {result.get('batch', run.get('batch', ''))} | {result.get('method', run.get('method', 'full'))} | {base} | "
             f"{result.get('dataset', run.get('dataset', ''))} | {result.get('lr', run.get('lr', ''))} | "
-            f"{epochs} | {loss_text} | {runtime_text} | {result.get('status', '')} |"
+            f"{epochs} | {result.get('global_step', '')} | {loss_text} | {eval_loss_text} | {runtime_text} | {result.get('status', '')} |"
         )
 
     lines.extend(["", "## Derived Models"])
@@ -237,6 +239,35 @@ def write_unified_summary() -> None:
         "8. v42 user guard",
         "9. v41 original-data control",
         "10. v40 scratch high-risk model",
+        "",
+        "## v44-v48 Clean-Data Evaluation Order",
+        "",
+        "1. v48 fused high-confidence candidate",
+        "2. v44 strict live specialist",
+        "3. v45 domain-aware R3 mixture",
+        "4. v47 clean world guard",
+        "5. v46 clean user-evolution specialist",
+        "",
+        "## v49-v53 Fixed-Data Tuning Order",
+        "",
+        "1. v51 rank-64 LoRA (official score 0.9188)",
+        "2. v50 lower-LR 2-epoch LoRA (0.8971)",
+        "3. v49 exact public anchor (0.8834)",
+        "4. v52 1-epoch full SFT (0.8614)",
+        "5. v53 3-epoch full SFT (0.7862)",
+        "",
+        "## v54-v63 Advanced Evaluation Order",
+        "",
+        "1. v63 real-label user/video/live guard",
+        "2. v58 LoRA+",
+        "3. v56 rank-stabilized LoRA",
+        "4. v61 v29 bridge at 5e-5",
+        "5. v54 rank-96 interpolation",
+        "6. v55 standard rank-128",
+        "7. v62 conservative v29 bridge",
+        "8. v57 DoRA",
+        "9. v59 rank-64 dropout-zero control",
+        "10. v60 doubled LoRA scaling",
         "",
         "## Notes",
         "- Ranking by train loss is only a training-health signal; use leaderboard evaluation for model selection.",
@@ -1257,12 +1288,16 @@ def build_parser() -> argparse.ArgumentParser:
     trainable = RUNS + source_runs()
     parser = argparse.ArgumentParser(description="Unified LLM4Rec experiment runner")
     selection = parser.add_mutually_exclusive_group()
-    selection.add_argument("--batch", choices=["v31-v32", "v34-v43"])
+    selection.add_argument("--batch", choices=["v31-v32", "v34-v43", "v44-v48", "v49-v53", "v54-v63"])
     selection.add_argument("--single", choices=[run["name"] for run in trainable])
     selection.add_argument("--list", action="store_true", help="list registered experiments without training")
     selection.add_argument("--rebuild-index", action="store_true", help="rebuild shared metadata files without preparing data or training")
     parser.add_argument("--gpu", type=int, choices=[0, 1], default=0, help="GPU used by --single")
     parser.add_argument("--prepare-only", action="store_true", help="generate data/configs but do not train")
+    parser.add_argument(
+        "--reuse-prepared", action="store_true",
+        help="train v44-v48 from already hash-verified generated JSONL without rebuilding it",
+    )
     return parser
 
 
@@ -1282,6 +1317,34 @@ def main() -> int:
         return 0
 
     source_names = {run["name"] for run in source_runs()}
+    clean_names = {run["name"] for run in source_runs() if run.get("batch") == "v44-v48"}
+    tuning_names = {run["name"] for run in source_runs() if run.get("batch") == "v49-v53"}
+    advanced_names = {run["name"] for run in source_runs() if run.get("batch") == "v54-v63"}
+    if args.batch == "v54-v63" or args.single in advanced_names:
+        import source_data
+
+        return source_data.run_advanced_experiments(
+            single=args.single,
+            gpu=args.gpu,
+            prepare_only=args.prepare_only,
+        )
+    if args.batch == "v49-v53" or args.single in tuning_names:
+        import source_data
+
+        return source_data.run_tuning_experiments(
+            single=args.single,
+            gpu=args.gpu,
+            prepare_only=args.prepare_only,
+        )
+    if args.batch == "v44-v48" or args.single in clean_names:
+        import source_data
+
+        return source_data.run_clean_experiments(
+            single=args.single,
+            gpu=args.gpu,
+            prepare_only=args.prepare_only,
+            reuse_prepared=args.reuse_prepared,
+        )
     if args.batch == "v34-v43" or args.single in source_names:
         import source_data
 

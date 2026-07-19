@@ -1,0 +1,25 @@
+{
+  "created_at": "2026-07-19 00:52:42",
+  "guard_dataset": {
+    "path": "/home/ll/llm4rec/experiments/data/v63_public_user_video_live_guard.jsonl",
+    "records": 38855,
+    "groups": {
+      "public_exact": 32705,
+      "user_json_replay": 2792,
+      "video_distinct_cot": 3017,
+      "live_distinct_cot": 341
+    },
+    "integrity": {
+      "target_in_prompt": 0,
+      "target_in_thought": 0,
+      "rejected_before_prompt_dedup": {
+        "target_in_prompt": 144
+      }
+    },
+    "sha256": "d6e668bb3eb7c3d248248bf96a307540cf2937811b9438d4e64c7b0a09c3c6d2",
+    "source_path": "/home/ll/llm4rec/data/external/kuaishou-llmrec-sft-baseline-0.91/train.jsonl",
+    "source_sha256": "4d6b29d76974c9a1517c1b583858e744cae019cb26e1e2d90066e237ebbcf5f8",
+    "transform": "Published clean rows plus one intentional replay of every parseable user target and at most one strict original CoT target per video/live prompt; no synthetic response text."
+  },
+  "policy": "Fixed public control for v54-v62; only v63 changes data, using real labeled records."
+}

@@ -184,5 +184,490 @@
     "configs": [
       "/home/ll/llm4rec/experiments/configs/v43_v29_paper_mix_low_lr25e7_ep15.yaml"
     ]
+  },
+  {
+    "name": "v44_v29_clean_live_temporal_lr6e7_ep045",
+    "dataset": "v44_clean_live_temporal",
+    "lr": "6.0e-7",
+    "epochs": 0.45,
+    "seed": 202607194,
+    "batch": "v44-v48",
+    "note": "Strict live specialist: future high-value live target, chronological pre-target history, semantic support, and 58/42 CoT/direct live supervision with clean guards.",
+    "evaluation": {
+      "total": 0.8732,
+      "item": 0.2146,
+      "user": [
+        0.0874,
+        0.037
+      ],
+      "recommendation": [
+        0.0576,
+        0.1122,
+        0.133,
+        0.1143
+      ],
+      "world": 0.1171,
+      "generation_minutes": 52.25
+    },
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v44_v29_clean_live_temporal_lr6e7_ep045.yaml"
+    ]
+  },
+  {
+    "name": "v45_v29_clean_r3_domainmix_lr55e7_ep045",
+    "dataset": "v45_clean_r3_domainmix",
+    "lr": "5.5e-7",
+    "epochs": 0.45,
+    "seed": 202607195,
+    "batch": "v44-v48",
+    "note": "Strict balanced R3 with paper-motivated domain ratios: ad direct-heavy, product CoT-heavy, live moderately CoT-rich, and video balanced.",
+    "evaluation": {
+      "total": 0.8774,
+      "item": 0.2146,
+      "user": [
+        0.0871,
+        0.0369
+      ],
+      "recommendation": [
+        0.0672,
+        0.1088,
+        0.1358,
+        0.1125
+      ],
+      "world": 0.1145,
+      "generation_minutes": 52.53
+    },
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v45_v29_clean_r3_domainmix_lr55e7_ep045.yaml"
+    ]
+  },
+  {
+    "name": "v46_v29_clean_user_evolution_lr5e7_ep045",
+    "dataset": "v46_clean_user_evolution",
+    "lr": "5.0e-7",
+    "epochs": 0.45,
+    "seed": 202607196,
+    "batch": "v44-v48",
+    "note": "User/evolution specialist using parseable deduplicated JSON, retained evidence-bearing user CoT, strict R3 temporal examples, and balanced item/rec guards.",
+    "evaluation": {
+      "total": 0.8787,
+      "item": 0.2146,
+      "user": [
+        0.0862,
+        0.036
+      ],
+      "recommendation": [
+        0.0768,
+        0.102,
+        0.1344,
+        0.1116
+      ],
+      "world": 0.1171,
+      "generation_minutes": 52.41
+    },
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v46_v29_clean_user_evolution_lr5e7_ep045.yaml"
+    ]
+  },
+  {
+    "name": "v47_v29_clean_world_guard_lr35e7_ep035",
+    "dataset": "v47_clean_world_guard",
+    "lr": "3.5e-7",
+    "epochs": 0.35,
+    "seed": 202607197,
+    "batch": "v44-v48",
+    "note": "World-knowledge guard with strict single-turn paired general data, exact/template deduplication, bounded traces, and a low-dose task-format replay shell.",
+    "evaluation": {
+      "total": 0.8753,
+      "item": 0.2146,
+      "user": [
+        0.0873,
+        0.0352
+      ],
+      "recommendation": [
+        0.0768,
+        0.0986,
+        0.1358,
+        0.1125
+      ],
+      "world": 0.1145
+    },
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v47_v29_clean_world_guard_lr35e7_ep035.yaml"
+    ]
+  },
+  {
+    "name": "v48_v29_clean_fused_lr45e7_ep040",
+    "dataset": "v48_clean_fused",
+    "lr": "4.5e-7",
+    "epochs": 0.4,
+    "seed": 202607198,
+    "batch": "v44-v48",
+    "note": "Fused high-confidence candidate combining clean general, collision-free R0, domain-aware strict R3, and deduplicated original-task guards.",
+    "evaluation": {
+      "total": 0.8731,
+      "item": 0.2146,
+      "user": [
+        0.0876,
+        0.0371
+      ],
+      "recommendation": [
+        0.0672,
+        0.102,
+        0.133,
+        0.1134
+      ],
+      "world": 0.1182,
+      "generation_minutes": 51.91
+    },
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v48_v29_clean_fused_lr45e7_ep040.yaml"
+    ]
+  },
+  {
+    "name": "v49_public091_lora_r32_lr2e4_ep1",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "2.0e-4",
+    "epochs": 1.0,
+    "seed": 202607199,
+    "batch": "v49-v53",
+    "weight_decay": 0.001,
+    "lora_rank": 32,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "validation_size": 0.0,
+    "note": "Exact public 0.9107 reproduction anchor: published 32,705-row clean data and LoRA r32/alpha32/dropout0.05 recipe.",
+    "evaluation": {
+      "total": 0.8834,
+      "item": 0.2146,
+      "user": [
+        0.0554,
+        0.0395
+      ],
+      "recommendation": [
+        0.0768,
+        0.1088,
+        0.1302,
+        0.1071
+      ],
+      "world": 0.1509,
+      "evaluation_minutes": 75.44
+    },
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v50_public091_lora_r32_lr1e4_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "1.0e-4",
+    "epochs": 2.0,
+    "seed": 202607200,
+    "batch": "v49-v53",
+    "weight_decay": 0.001,
+    "lora_rank": 32,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "validation_size": 0.0,
+    "note": "Same public data and LoRA capacity as v49, with half LR and two epochs to test whether the one-epoch public anchor is optimization-limited.",
+    "evaluation": {
+      "total": 0.8971,
+      "item": 0.2453,
+      "user": [
+        0.0622,
+        0.0399
+      ],
+      "recommendation": [
+        0.0384,
+        0.1122,
+        0.1498,
+        0.1062
+      ],
+      "world": 0.1431,
+      "evaluation_minutes": 71.56
+    },
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v51_public091_lora_r64_lr1e4_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "1.0e-4",
+    "epochs": 2.0,
+    "seed": 202607201,
+    "batch": "v49-v53",
+    "weight_decay": 0.001,
+    "lora_rank": 64,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "validation_size": 0.0,
+    "note": "Higher-capacity LoRA on fixed data; isolates adapter rank from the longer schedule while retaining the public alpha/rank scaling.",
+    "evaluation": {
+      "total": 0.9188,
+      "item": 0.2146,
+      "user": [
+        0.079,
+        0.0381
+      ],
+      "recommendation": [
+        0.0576,
+        0.1156,
+        0.1526,
+        0.1071
+      ],
+      "world": 0.1543,
+      "evaluation_minutes": 68.58
+    },
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v52_public091_full_lr2e5_ep1",
+    "dataset": "v49_public_091_exact",
+    "method": "full",
+    "lr": "2.0e-5",
+    "epochs": 1.0,
+    "seed": 202607202,
+    "batch": "v49-v53",
+    "weight_decay": 0.0,
+    "validation_size": 0.0,
+    "note": "Full-SFT counterpart using v7's successful 2e-5 scale, now on balanced CoT/direct clean data instead of final-only data.",
+    "evaluation": {
+      "total": 0.8614,
+      "item": 0.184,
+      "user": [
+        0.0538,
+        0.0424
+      ],
+      "recommendation": [
+        0.0768,
+        0.1122,
+        0.1246,
+        0.1125
+      ],
+      "world": 0.155,
+      "evaluation_minutes": 71.41
+    },
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v53_public091_full_lr1e5_ep3",
+    "dataset": "v49_public_091_exact",
+    "method": "full",
+    "lr": "1.0e-5",
+    "epochs": 3.0,
+    "seed": 202607203,
+    "batch": "v49-v53",
+    "weight_decay": 0.0,
+    "validation_size": 0.0,
+    "note": "Convergence anchor matching the published full-SFT 1e-5/3-epoch schedule whose validation loss fell through the third epoch.",
+    "evaluation": {
+      "total": 0.7862,
+      "item": 0.2146,
+      "user": [
+        0.0003,
+        0.041
+      ],
+      "recommendation": [
+        0.0384,
+        0.1054,
+        0.126,
+        0.1089
+      ],
+      "world": 0.1517,
+      "evaluation_minutes": 71.53
+    },
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v54_public091_lora_r96_lr1e4_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "1.0e-4",
+    "epochs": 2.0,
+    "seed": 202607204,
+    "batch": "v54-v63",
+    "weight_decay": 0.001,
+    "lora_rank": 96,
+    "lora_alpha": 96,
+    "lora_dropout": 0.05,
+    "note": "Interpolate between rank-64 v51 and rank-128 while keeping unit LoRA scaling and the successful two-epoch schedule.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v54_public091_lora_r96_lr1e4_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v55_public091_lora_r128_lr8e5_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "8.0e-5",
+    "epochs": 2.0,
+    "seed": 202607205,
+    "batch": "v54-v63",
+    "weight_decay": 0.001,
+    "lora_rank": 128,
+    "lora_alpha": 128,
+    "lora_dropout": 0.05,
+    "note": "Higher-capacity standard LoRA with a modestly reduced LR to test whether v51 remains rank-limited.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v55_public091_lora_r128_lr8e5_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v56_public091_rslora_r128_a16_lr6e5_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "6.0e-5",
+    "epochs": 2.0,
+    "seed": 202607206,
+    "batch": "v54-v63",
+    "weight_decay": 0.001,
+    "lora_rank": 128,
+    "lora_alpha": 16,
+    "lora_dropout": 0.05,
+    "use_rslora": true,
+    "merge_to_full": true,
+    "note": "Rank-stabilized LoRA branch; alpha/sqrt(rank) avoids the high-rank scaling collapse and is merged for submission compatibility.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v56_public091_rslora_r128_a16_lr6e5_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v57_public091_dora_r64_lr8e5_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "8.0e-5",
+    "epochs": 2.0,
+    "seed": 202607207,
+    "batch": "v54-v63",
+    "weight_decay": 0.001,
+    "lora_rank": 64,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "use_dora": true,
+    "merge_to_full": true,
+    "note": "DoRA magnitude/direction adaptation at v51 rank, merged to a standard full checkpoint after training.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v57_public091_dora_r64_lr8e5_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v58_public091_loraplus_r64_lr2e5_x16_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "2.0e-5",
+    "epochs": 2.0,
+    "seed": 202607208,
+    "batch": "v54-v63",
+    "weight_decay": 0.001,
+    "lora_rank": 64,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "loraplus_lr_ratio": 16.0,
+    "note": "LoRA+ uses separate A/B learning rates; the conservative base LR gives the B matrix a 3.2e-4 update rate.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v58_public091_loraplus_r64_lr2e5_x16_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v59_public091_lora_r64_drop0_lr1e4_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "1.0e-4",
+    "epochs": 2.0,
+    "seed": 202607209,
+    "batch": "v54-v63",
+    "weight_decay": 0.001,
+    "lora_rank": 64,
+    "lora_alpha": 64,
+    "lora_dropout": 0.0,
+    "note": "Exact v51 control with adapter dropout removed, matching the recent public ORPO/GRPO adapter convention.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v59_public091_lora_r64_drop0_lr1e4_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v60_public091_lora_r64_a128_lr5e5_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "5.0e-5",
+    "epochs": 2.0,
+    "seed": 202607210,
+    "batch": "v54-v63",
+    "weight_decay": 0.001,
+    "lora_rank": 64,
+    "lora_alpha": 128,
+    "lora_dropout": 0.05,
+    "note": "Double LoRA scaling with half v51 LR, isolating update geometry from nominal learning rate.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v60_public091_lora_r64_a128_lr5e5_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v61_v29_public091_lora_r64_lr5e5_ep1",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "5.0e-5",
+    "epochs": 1.0,
+    "seed": 202607211,
+    "batch": "v54-v63",
+    "weight_decay": 0.001,
+    "lora_rank": 64,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "merge_to_full": true,
+    "note": "Public clean-data LoRA over the strong v29 full checkpoint, targeting v29 user/video retention plus v51 ad/world gains.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v61_v29_public091_lora_r64_lr5e5_ep1.yaml"
+    ],
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018"
+  },
+  {
+    "name": "v62_v29_public091_lora_r64_lr2e5_ep1",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "2.0e-5",
+    "epochs": 1.0,
+    "seed": 202607212,
+    "batch": "v54-v63",
+    "weight_decay": 0.001,
+    "lora_rank": 64,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "merge_to_full": true,
+    "note": "Lower-dose v29-based counterpart intended to preserve its structured-user and video behavior more conservatively.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v62_v29_public091_lora_r64_lr2e5_ep1.yaml"
+    ],
+    "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018"
+  },
+  {
+    "name": "v63_public_guard_lora_r64_lr8e5_ep2",
+    "dataset": "v63_public_user_video_live_guard",
+    "method": "lora",
+    "lr": "8.0e-5",
+    "epochs": 2.0,
+    "seed": 202607213,
+    "batch": "v54-v63",
+    "weight_decay": 0.001,
+    "lora_rank": 64,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "note": "Real-label task guard: duplicate valid user JSON and add at most one distinct original CoT target per video/live prompt without synthetic traces.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v63_public_guard_lora_r64_lr8e5_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
   }
 ]

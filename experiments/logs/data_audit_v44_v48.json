@@ -1,0 +1,153 @@
+{
+  "general": {
+    "filter_counts": {
+      "scanned": 152005,
+      "accepted_cn": 1741,
+      "length_reject": 109918,
+      "not_strict_single_turn": 22224,
+      "accepted_other": 2259,
+      "missing_cot_shell": 2105,
+      "short_final": 351,
+      "banned_format": 21,
+      "exact_duplicate": 432,
+      "source_cap": 12954,
+      "unique_pairs": 4000
+    },
+    "source_counts": {
+      "stepfun_general": 4000
+    }
+  },
+  "old_competition": {
+    "filter_counts": {
+      "rec_bad_thought": 1087,
+      "rec_target_leakage": 680,
+      "rec_ungrounded_thought": 3510,
+      "rec_missing_stages": 1258,
+      "rec_selected_histories": 5201,
+      "user_selected": 2892,
+      "item_bad_target": 4787,
+      "item_selected": 5597
+    },
+    "pool_counts": {
+      "old_rec_live_direct": 671,
+      "old_rec_live_think": 671,
+      "old_rec_ad_direct": 793,
+      "old_rec_ad_think": 793,
+      "old_rec_video_direct": 3107,
+      "old_rec_video_think": 3107,
+      "old_rec_goods_direct": 630,
+      "old_rec_goods_think": 630,
+      "old_user_array_direct": 1588,
+      "old_user_logic_direct": 1304,
+      "old_user_logic_think": 598,
+      "old_item_goods_direct": 1611,
+      "old_item_goods_think": 531,
+      "old_item_live_direct": 784,
+      "old_item_live_think": 284,
+      "old_item_ad_direct": 1581,
+      "old_item_ad_think": 519,
+      "old_item_video_direct": 1621,
+      "old_item_video_think": 418
+    }
+  },
+  "profiles": {
+    "sampled_rows": 29502,
+    "raw_target_video/ad": 15190,
+    "raw_target_video/video": 22796,
+    "raw_target_live": 20066,
+    "empty_profiles": 830,
+    "raw_target_goods": 12267,
+    "kept_profiles": 28672,
+    "needed_keys": 629322
+  },
+  "captions": {
+    "caption_rejected": 2406,
+    "profile_captions": 593035,
+    "r0_captions": 40481
+  },
+  "tags": {
+    "tags": 299144
+  },
+  "sids": {
+    "sids": 666127
+  },
+  "r0": {
+    "filter_counts": {
+      "caption_collision": 67
+    },
+    "pool_counts": {
+      "r0_ground_direct": 40414,
+      "r0_caption_direct": 40414,
+      "r0_caption_think": 6390
+    }
+  },
+  "r3": {
+    "filter_counts": {
+      "valid_video/ad": 12421,
+      "valid_video/video": 18618,
+      "valid_live": 8856,
+      "valid_goods": 5777,
+      "weak_or_short_history": 20458,
+      "missing_target_metadata": 3382,
+      "cot_or_leakage_reject": 807,
+      "balanced_profiles": 24542
+    },
+    "balanced_domains": {
+      "video/ad": 6153,
+      "video/video": 6482,
+      "live": 6146,
+      "goods": 5761
+    },
+    "pool_counts": {
+      "r3_live_specialist_direct": 8856,
+      "r3_live_specialist_think": 8856,
+      "r3_balanced_ad_direct": 6153,
+      "r3_balanced_ad_think": 6153,
+      "r3_balanced_video_direct": 6482,
+      "r3_balanced_video_think": 6482,
+      "r3_balanced_live_direct": 6146,
+      "r3_balanced_live_think": 6146,
+      "r3_balanced_goods_direct": 5761,
+      "r3_balanced_goods_think": 5761
+    }
+  },
+  "pool_counts": {
+    "general_cn_direct": 1741,
+    "general_cn_think": 1741,
+    "general_other_direct": 2259,
+    "general_other_think": 2259,
+    "old_rec_live_direct": 671,
+    "old_rec_live_think": 671,
+    "old_rec_ad_direct": 793,
+    "old_rec_ad_think": 793,
+    "old_rec_video_direct": 3107,
+    "old_rec_video_think": 3107,
+    "old_rec_goods_direct": 630,
+    "old_rec_goods_think": 630,
+    "old_user_array_direct": 1588,
+    "old_user_logic_direct": 1304,
+    "old_user_logic_think": 598,
+    "old_item_goods_direct": 1611,
+    "old_item_goods_think": 531,
+    "old_item_live_direct": 784,
+    "old_item_live_think": 284,
+    "old_item_ad_direct": 1581,
+    "old_item_ad_think": 519,
+    "old_item_video_direct": 1621,
+    "old_item_video_think": 418,
+    "r0_ground_direct": 40414,
+    "r0_caption_direct": 40414,
+    "r0_caption_think": 6390,
+    "r3_live_specialist_direct": 8856,
+    "r3_live_specialist_think": 8856,
+    "r3_balanced_ad_direct": 6153,
+    "r3_balanced_ad_think": 6153,
+    "r3_balanced_video_direct": 6482,
+    "r3_balanced_video_think": 6482,
+    "r3_balanced_live_direct": 6146,
+    "r3_balanced_live_think": 6146,
+    "r3_balanced_goods_direct": 5761,
+    "r3_balanced_goods_think": 5761
+  },
+  "policy": "Strict single-turn general QA; canonical metadata joins; one balanced R3 target per profile; history timestamps strictly precede targets; high-value targets; tag-supported evidence; target SID forbidden from prompt and CoT; every CoT itemic reference must occur in history."
+}

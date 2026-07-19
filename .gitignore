@@ -19,6 +19,9 @@ demo/baseline-data/*
 demo/data/*
 !demo/data/data_final.jsonl
 
+# Reproducible external datasets (download URLs and hashes live in recipes)
+data/external/**/*.jsonl
+
 # Demo install/training artifacts
 demo/flash_install.log
 demo/output/

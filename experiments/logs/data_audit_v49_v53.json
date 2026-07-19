@@ -1,0 +1,27 @@
+{
+  "created_at": "2026-07-19 00:52:39",
+  "dataset": "v49_public_091_exact",
+  "published_score": 0.9107,
+  "path": "/home/ll/llm4rec/experiments/data/v49_public_091_exact.jsonl",
+  "records": 32705,
+  "groups": {
+    "rec": 18651,
+    "item": 9684,
+    "user": 2792,
+    "world": 1578
+  },
+  "routes": {
+    "no_think": 20934,
+    "think": 11771
+  },
+  "thought_modes": {
+    "empty": 20934,
+    "filled": 11771
+  },
+  "sha256": "cdedea13c560d3453697f4a3c9b96a2303bd708c84833034fa953d16482b9925",
+  "source_path": "/home/ll/llm4rec/data/external/kuaishou-llmrec-sft-baseline-0.91/train.jsonl",
+  "source_url": "https://huggingface.co/datasets/Frinkleko/kuaishou-llmrec-sft-baseline-0.91/resolve/main/train.jsonl?download=true",
+  "source_sha256": "4d6b29d76974c9a1517c1b583858e744cae019cb26e1e2d90066e237ebbcf5f8",
+  "source_license": "Apache-2.0",
+  "transform": "Lossless field mapping from system/prompt/response to instruction/input/output; original seed-42 order retained."
+}

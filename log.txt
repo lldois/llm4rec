@@ -362,3 +362,146 @@ run baseline
 - results and summary: /home/ll/llm4rec/experiments/logs/summary.json and summary.md
 - status history: /home/ll/llm4rec/experiments/logs/supervisor_status.jsonl
 - no model was retrained or modified during this migration.
+
+[2026-07-16 01:21:14] high-precision v44-v48 data preparation started.
+
+[2026-07-16 01:44:21] v44-v48 batch completed
+- summary=/home/ll/llm4rec/experiments/logs/summary.md
+- manifest=/home/ll/llm4rec/experiments/data/manifest.json
+- v44_v29_clean_live_temporal_lr6e7_ep045: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v44_clean_live_temporal, lr=6.0e-7, epochs=0.45, train_loss=2.0322839260101317, runtime=359.09s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v44_v29_clean_live_temporal_lr6e7_ep045
+  note=Strict live specialist: future high-value live target, chronological pre-target history, semantic support, and 58/42 CoT/direct live supervision with clean guards.
+- v45_v29_clean_r3_domainmix_lr55e7_ep045: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v45_clean_r3_domainmix, lr=5.5e-7, epochs=0.45, train_loss=2.228161503286923, runtime=298.58s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v45_v29_clean_r3_domainmix_lr55e7_ep045
+  note=Strict balanced R3 with paper-motivated domain ratios: ad direct-heavy, product CoT-heavy, live moderately CoT-rich, and video balanced.
+- v46_v29_clean_user_evolution_lr5e7_ep045: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v46_clean_user_evolution, lr=5.0e-7, epochs=0.45, train_loss=1.7778411229451498, runtime=542.8s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v46_v29_clean_user_evolution_lr5e7_ep045
+  note=User/evolution specialist using parseable deduplicated JSON, retained evidence-bearing user CoT, strict R3 temporal examples, and balanced item/rec guards.
+- v47_v29_clean_world_guard_lr35e7_ep035: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v47_clean_world_guard, lr=3.5e-7, epochs=0.35, train_loss=1.9200461094196026, runtime=233.84s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v47_v29_clean_world_guard_lr35e7_ep035
+  note=World-knowledge guard with strict single-turn paired general data, exact/template deduplication, bounded traces, and a low-dose task-format replay shell.
+- v48_v29_clean_fused_lr45e7_ep040: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v48_clean_fused, lr=4.5e-7, epochs=0.4, train_loss=2.147665500640869, runtime=284.8s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v48_v29_clean_fused_lr45e7_ep040
+  note=Fused high-confidence candidate combining clean general, collision-free R0, domain-aware strict R3, and deduplicated original-task guards.
+- cleanup: generated_jsonl=5, arrow_caches=5; checkpoints=none expected.
+- validation_errors=[]
+
+[2026-07-16 01:45:38] final verification for v44-v48
+- data: 24,542 one-target balanced profiles; ad=6,153, video=6,482, live=6,146, goods=5,761; live-specialist pool=8,856.
+- hard filters: strict target timestamp, high-value action, semantic evidence, route format, JSON parse, target leakage, grounded CoT references, and canonical deduplication.
+- weights: 5/5 model.safetensors files opened successfully; each is 1,602,902,832 bytes with 311 tensors.
+- steps: v44=40, v45=34, v46=60, v47=26, v48=32; deliberately aligned with v29's successful 47-step update instead of v34-v43's 447-764 steps.
+- storage: no generated experiment JSONL, matching Arrow cache, or checkpoint-* directory remains.
+- gpu_release: GPU0=163MiB/0%, GPU1=15MiB/0%; no training or supervisor process remains.
+- suggested leaderboard order: v48, v44, v45, v47, v46. Train loss is not comparable across these different datasets.
+
+[2026-07-16 22:55:15] v49-v53 fixed-data tuning batch prepared
+- source=/home/ll/llm4rec/data/external/kuaishou-llmrec-sft-baseline-0.91/train.jsonl sha256=4d6b29d76974c9a1517c1b583858e744cae019cb26e1e2d90066e237ebbcf5f8
+- dataset=v49_public_091_exact records=32705 groups={'rec': 18651, 'item': 9684, 'user': 2792, 'world': 1578} routes={'no_think': 20934, 'think': 11771}
+- strategy=fixed clean data; compare exact public LoRA, longer LoRA, higher-rank LoRA, 1-epoch full SFT, and converged 3-epoch full SFT.
+- checkpoint_policy=no intermediate checkpoints; retain final weights only.
+
+[2026-07-16 23:52:02] v49-v53 first launch stopped and invalidated
+- v53 completed epoch 1 training (323/969 planned steps) and v51 completed epoch 1 training (324/648 planned steps), but framework evaluation attempted to materialize 32K-token full-vocabulary FP32 logits.
+- eval OOM requested an additional 12.94 GiB on GPU0 and 21.48 GiB on GPU1; this is an evaluation-path memory issue, not a training OOM.
+- the supervisor and its newly launched child runs were stopped; no partial result will be retained or reported as a completed experiment.
+- resolution: disable in-training evaluation, restart every version from the official base, and use complete per-window training curves plus full cosine schedules as convergence evidence.
+
+[2026-07-16 23:52:50] v49-v53 fixed-data tuning batch prepared
+- source=/home/ll/llm4rec/data/external/kuaishou-llmrec-sft-baseline-0.91/train.jsonl sha256=4d6b29d76974c9a1517c1b583858e744cae019cb26e1e2d90066e237ebbcf5f8
+- dataset=v49_public_091_exact records=32705 groups={'rec': 18651, 'item': 9684, 'user': 2792, 'world': 1578} routes={'no_think': 20934, 'think': 11771}
+- strategy=fixed clean data; compare exact public LoRA, longer LoRA, higher-rank LoRA, 1-epoch full SFT, and converged 3-epoch full SFT.
+- checkpoint_policy=no intermediate checkpoints; retain final weights only.
+
+[2026-07-17 03:53:26] v49-v53 batch completed
+- summary=/home/ll/llm4rec/experiments/logs/summary.md
+- manifest=/home/ll/llm4rec/experiments/data/manifest.json
+- v53_public091_full_lr1e5_ep3: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=1.0e-5, epochs=3.0, train_loss=1.6425541134699722, runtime=7937.76s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v53_public091_full_lr1e5_ep3
+  note=Convergence anchor matching the published full-SFT 1e-5/3-epoch schedule whose validation loss fell through the third epoch.
+- v51_public091_lora_r64_lr1e4_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=1.0e-4, epochs=2.0, train_loss=1.4956257215306803, runtime=6493.3s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v51_public091_lora_r64_lr1e4_ep2
+  note=Higher-capacity LoRA on fixed data; isolates adapter rank from the longer schedule while retaining the public alpha/rank scaling.
+- v52_public091_full_lr2e5_ep1: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=2.0e-5, epochs=1.0, train_loss=1.6355595296145948, runtime=2611.22s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v52_public091_full_lr2e5_ep1
+  note=Full-SFT counterpart using v7's successful 2e-5 scale, now on balanced CoT/direct clean data instead of final-only data.
+- v50_public091_lora_r32_lr1e4_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=1.0e-4, epochs=2.0, train_loss=1.5553654472520746, runtime=6498.33s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v50_public091_lora_r32_lr1e4_ep2
+  note=Same public data and LoRA capacity as v49, with half LR and two epochs to test whether the one-epoch public anchor is optimization-limited.
+- v49_public091_lora_r32_lr2e4_ep1: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=2.0e-4, epochs=1.0, train_loss=1.5965378679380826, runtime=3235.22s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v49_public091_lora_r32_lr2e4_ep1
+  note=Exact public 0.9107 reproduction anchor: published 32,705-row clean data and LoRA r32/alpha32/dropout0.05 recipe.
+- cleanup: generated_jsonl=1, arrow_caches=2; checkpoints=none expected.
+- validation_errors=[]
+
+[2026-07-17 03:56:00] final verification for v49-v53
+- complete_steps: v49=326/326, v50=652/652, v51=652/652, v52=326/326, v53=978/978.
+- train_loss: v49=1.5965, v50=1.5554, v51=1.4956, v52=1.6356, v53=1.6426.
+- tail10_loss: v49=1.4549, v50=1.4340, v51=1.3773, v52=1.5478, v53=1.5556.
+- weights: v49/v50 adapter=80,792,456 bytes; v51 adapter=161,533,160 bytes; v52/v53 full model=1,602,902,832 bytes. All safetensors opened successfully.
+- upload_contract: LoRA runs contain adapter_model.safetensors and adapter_config.json; full runs contain model.safetensors.
+- storage: no checkpoint-* directory or generated v49_public_091_exact.jsonl remains; raw external source and conversion code are retained.
+- gpu_release: GPU0=163MiB/0%, GPU1=15MiB/0%; no training or supervisor process remains.
+- recommended_eval_order: v49 (published 0.9107 anchor), v51 (best converged LoRA), v52 (best full-SFT tradeoff), v50, v53.
+
+[2026-07-19 00:48:04] v49-v53 fixed-data tuning batch prepared
+- source=/home/ll/llm4rec/data/external/kuaishou-llmrec-sft-baseline-0.91/train.jsonl sha256=4d6b29d76974c9a1517c1b583858e744cae019cb26e1e2d90066e237ebbcf5f8
+- dataset=v49_public_091_exact records=32705 groups={'rec': 18651, 'item': 9684, 'user': 2792, 'world': 1578} routes={'no_think': 20934, 'think': 11771}
+- strategy=fixed clean data; compare exact public LoRA, longer LoRA, higher-rank LoRA, 1-epoch full SFT, and converged 3-epoch full SFT.
+- checkpoint_policy=no intermediate checkpoints; retain final weights only.
+
+[2026-07-19 00:48:07] v54-v63 advanced batch prepared
+- fixed_dataset=v49_public_091_exact records=32705
+- guard_dataset=v63_public_user_video_live_guard records=38917 groups={'public_exact': 32705, 'user_json_replay': 2792, 'video_distinct_cot': 3024, 'live_distinct_cot': 396} sha256=a2194b4b9fb94da7615d4223d5aeaf3890df81d5437a681a8397c969fb5f3070
+- strategy=v51-centered PEFT search, two v29-base bridges, and one real-label user/video/live data guard.
+- checkpoint_policy=no intermediate checkpoints; merge nonstandard/v29-based adapters to full models.
+
+[2026-07-19 00:51:08] v49-v53 fixed-data tuning batch prepared
+- source=/home/ll/llm4rec/data/external/kuaishou-llmrec-sft-baseline-0.91/train.jsonl sha256=4d6b29d76974c9a1517c1b583858e744cae019cb26e1e2d90066e237ebbcf5f8
+- dataset=v49_public_091_exact records=32705 groups={'rec': 18651, 'item': 9684, 'user': 2792, 'world': 1578} routes={'no_think': 20934, 'think': 11771}
+- strategy=fixed clean data; compare exact public LoRA, longer LoRA, higher-rank LoRA, 1-epoch full SFT, and converged 3-epoch full SFT.
+- checkpoint_policy=no intermediate checkpoints; retain final weights only.
+
+[2026-07-19 00:51:11] v54-v63 advanced batch prepared
+- fixed_dataset=v49_public_091_exact records=32705
+- guard_dataset=v63_public_user_video_live_guard records=38855 groups={'public_exact': 32705, 'user_json_replay': 2792, 'video_distinct_cot': 3017, 'live_distinct_cot': 341} sha256=d6e668bb3eb7c3d248248bf96a307540cf2937811b9438d4e64c7b0a09c3c6d2
+- strategy=v51-centered PEFT search, two v29-base bridges, and one real-label user/video/live data guard.
+- checkpoint_policy=no intermediate checkpoints; merge nonstandard/v29-based adapters to full models.
+
+[2026-07-19 00:52:39] v49-v53 fixed-data tuning batch prepared
+- source=/home/ll/llm4rec/data/external/kuaishou-llmrec-sft-baseline-0.91/train.jsonl sha256=4d6b29d76974c9a1517c1b583858e744cae019cb26e1e2d90066e237ebbcf5f8
+- dataset=v49_public_091_exact records=32705 groups={'rec': 18651, 'item': 9684, 'user': 2792, 'world': 1578} routes={'no_think': 20934, 'think': 11771}
+- strategy=fixed clean data; compare exact public LoRA, longer LoRA, higher-rank LoRA, 1-epoch full SFT, and converged 3-epoch full SFT.
+- checkpoint_policy=no intermediate checkpoints; retain final weights only.
+
+[2026-07-19 00:52:42] v54-v63 advanced batch prepared
+- fixed_dataset=v49_public_091_exact records=32705
+- guard_dataset=v63_public_user_video_live_guard records=38855 groups={'public_exact': 32705, 'user_json_replay': 2792, 'video_distinct_cot': 3017, 'live_distinct_cot': 341} sha256=d6e668bb3eb7c3d248248bf96a307540cf2937811b9438d4e64c7b0a09c3c6d2
+- strategy=v51-centered PEFT search, two v29-base bridges, and one real-label user/video/live data guard.
+- checkpoint_policy=no intermediate checkpoints; merge nonstandard/v29-based adapters to full models.
+
+[2026-07-19 10:40:26] v54-v63 batch completed
+- summary=/home/ll/llm4rec/experiments/logs/summary.md
+- manifest=/home/ll/llm4rec/experiments/data/manifest.json
+- v55_public091_lora_r128_lr8e5_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=8.0e-5, epochs=2.0, train_loss=1.4589026731216104, runtime=6602.66s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v55_public091_lora_r128_lr8e5_ep2
+  note=Higher-capacity standard LoRA with a modestly reduced LR to test whether v51 remains rank-limited.
+- v56_public091_rslora_r128_a16_lr6e5_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=6.0e-5, epochs=2.0, train_loss=1.4547905333203042, runtime=6557.57s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v56_public091_rslora_r128_a16_lr6e5_ep2
+  note=Rank-stabilized LoRA branch; alpha/sqrt(rank) avoids the high-rank scaling collapse and is merged for submission compatibility.
+- v57_public091_dora_r64_lr8e5_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=8.0e-5, epochs=2.0, train_loss=1.5140846612994656, runtime=13410.89s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v57_public091_dora_r64_lr8e5_ep2
+  note=DoRA magnitude/direction adaptation at v51 rank, merged to a standard full checkpoint after training.
+- v63_public_guard_lora_r64_lr8e5_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v63_public_user_video_live_guard, lr=8.0e-5, epochs=2.0, train_loss=1.4271495402360164, runtime=9765.05s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v63_public_guard_lora_r64_lr8e5_ep2
+  note=Real-label task guard: duplicate valid user JSON and add at most one distinct original CoT target per video/live prompt without synthetic traces.
+- v54_public091_lora_r96_lr1e4_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=1.0e-4, epochs=2.0, train_loss=1.4611087430474217, runtime=6560.79s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v54_public091_lora_r96_lr1e4_ep2
+  note=Interpolate between rank-64 v51 and rank-128 while keeping unit LoRA scaling and the successful two-epoch schedule.
+- v58_public091_loraplus_r64_lr2e5_x16_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=2.0e-5, epochs=2.0, train_loss=1.4332988053743094, runtime=6475.92s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v58_public091_loraplus_r64_lr2e5_x16_ep2
+  note=LoRA+ uses separate A/B learning rates; the conservative base LR gives the B matrix a 3.2e-4 update rate.
+- v59_public091_lora_r64_drop0_lr1e4_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=1.0e-4, epochs=2.0, train_loss=1.4925634411215052, runtime=5789.16s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v59_public091_lora_r64_drop0_lr1e4_ep2
+  note=Exact v51 control with adapter dropout removed, matching the recent public ORPO/GRPO adapter convention.
+- v60_public091_lora_r64_a128_lr5e5_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=5.0e-5, epochs=2.0, train_loss=1.503196138911452, runtime=6479.53s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v60_public091_lora_r64_a128_lr5e5_ep2
+  note=Double LoRA scaling with half v51 LR, isolating update geometry from nominal learning rate.
+- v61_v29_public091_lora_r64_lr5e5_ep1: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v49_public_091_exact, lr=5.0e-5, epochs=1.0, train_loss=1.4662411900385757, runtime=3282.75s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v61_v29_public091_lora_r64_lr5e5_ep1
+  note=Public clean-data LoRA over the strong v29 full checkpoint, targeting v29 user/video retention plus v51 ad/world gains.
+- v62_v29_public091_lora_r64_lr2e5_ep1: base=/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018, dataset=v49_public_091_exact, lr=2.0e-5, epochs=1.0, train_loss=1.483175157769326, runtime=3263.21s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v62_v29_public091_lora_r64_lr2e5_ep1
+  note=Lower-dose v29-based counterpart intended to preserve its structured-user and video behavior more conservatively.
+- cleanup: generated_jsonl=2, arrow_caches=2; checkpoints=none expected.
+- validation_errors=[]
+
+[2026-07-19 10:44:00] final verification for v54-v63
+- complete_steps: v54=652/652, v55=652/652, v56=652/652, v57=652/652, v58=652/652, v59=652/652, v60=652/652, v61=326/326, v62=326/326, v63=952/952; all status=ok.
+- train_loss: v54=1.4611, v55=1.4589, v56=1.4548, v57=1.5141, v58=1.4333, v59=1.4926, v60=1.5032, v61=1.4662, v62=1.4832, v63=1.4271.
+- tail_loss: v54=1.3334, v55=1.3448, v56=1.3237, v57=1.3979, v58=1.3121, v59=1.3609, v60=1.3970, v61=1.5045, v62=1.4817, v63=1.3155.
+- final_v63_data_audit: 38855 rows = public_exact 32705 + user_json_replay 2792 + video_distinct_cot 3017 + live_distinct_cot 341; target_in_prompt=0 and target_in_thought=0; source/transform hashes are in experiments/data/manifest.json.
+- upload_contract: v54/v55/v58/v59/v60/v63 are standard LoRA directories. v56/v57/v61/v62 expose a merged model.safetensors at the root; their original adapter_config.json and adapter_model.safetensors are retained under adapter_repro/ only for reproduction.
+- cleanup: no checkpoint-* directories; generated v49/v63 JSONL and matching Arrow caches removed; raw public/local source data and deterministic conversion code retained.
+- gpu_release: GPU0=163MiB/0%, GPU1=15MiB/0%; no compute process remains.
+- recommended_eval_order: v63, v58, v56, v61, v54, v55, v62, v57, v59, v60. Official score must decide; training loss is not a leaderboard proxy.
