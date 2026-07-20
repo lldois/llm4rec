@@ -1,6 +1,6 @@
 # LLM4Rec Experiment Summary
 
-Updated: 2026-07-19 10:44:51
+Updated: 2026-07-20 03:55:30
 
 ## Dataset Variants
 - `v29_live_specialist_r3`: 13013 records, groups={'rec': 7413, 'user': 2400, 'item': 3200}, sha256=5710cee8621dde0b19e5418cfe81cc5aea2933d432478968c498ff0f00e24934
@@ -21,6 +21,7 @@ Updated: 2026-07-19 10:44:51
 - `v48_clean_fused`: 11600 records, groups={'old_user_clean': 1000, 'r0_clean': 1650, 'general_clean': 2400, 'r3_clean': 3600, 'old_rec_clean': 1450, 'old_item_clean': 1500}, sha256=d080d8786abbd5f20116c97bfee6d8d073bcecb38143880985452fe0fe503af2
 - `v49_public_091_exact`: 32705 records, groups={'rec': 18651, 'item': 9684, 'user': 2792, 'world': 1578}, sha256=cdedea13c560d3453697f4a3c9b96a2303bd708c84833034fa953d16482b9925
 - `v63_public_user_video_live_guard`: 38855 records, groups={'public_exact': 32705, 'user_json_replay': 2792, 'video_distinct_cot': 3017, 'live_distinct_cot': 341}, sha256=d6e668bb3eb7c3d248248bf96a307540cf2937811b9438d4e64c7b0a09c3c6d2
+- `v67_public_user_replay`: 35497 records, groups={'public_exact': 32705, 'user_json_replay': 2792}, sha256=974801db6aadac76657e92f59d3281709cdd0b801da20ee3df483de22271a8ae
 
 ## Runs
 | version | batch | method | base | dataset | lr | epochs | steps | train loss | eval loss | runtime min | status |
@@ -57,6 +58,11 @@ Updated: 2026-07-19 10:44:51
 | v61_v29_public091_lora_r64_lr5e5_ep1 | v54-v63 | lora | v29_v19_user_world_guard_lr8e7_ep018 | v49_public_091_exact | 5.0e-5 | 1.0 | 326 | 1.4662 |  | 54.71 | ok |
 | v62_v29_public091_lora_r64_lr2e5_ep1 | v54-v63 | lora | v29_v19_user_world_guard_lr8e7_ep018 | v49_public_091_exact | 2.0e-5 | 1.0 | 326 | 1.4832 |  | 54.39 | ok |
 | v63_public_guard_lora_r64_lr8e5_ep2 | v54-v63 | lora | official-pretrain | v63_public_user_video_live_guard | 8.0e-5 | 2.0 | 952 | 1.4271 |  | 162.75 | ok |
+| v64_public091_loraplus_r64_lr2e5_x8_ep2 | v64-v68 | lora | official-pretrain | v49_public_091_exact | 2.0e-5 | 2.0 | 652 | 1.4903 |  | 108.80 | ok |
+| v65_public091_loraplus_r128_lr1e5_x16_ep2 | v64-v68 | lora | official-pretrain | v49_public_091_exact | 1.0e-5 | 2.0 | 652 | 1.4310 |  | 109.68 | ok |
+| v66_public091_rslora_loraplus_r128_a16_lr1e5_x16_ep2 | v64-v68 | lora | official-pretrain | v49_public_091_exact | 1.0e-5 | 2.0 | 652 | 1.4016 |  | 110.14 | ok |
+| v67_public_user_replay_loraplus_r64_lr2e5_x16_ep2 | v64-v68 | lora | official-pretrain | v67_public_user_replay | 2.0e-5 | 2.0 | 856 | 1.3518 |  | 146.05 | ok |
+| v68_public091_pissa_loraplus_r64_lr2e5_x8_ep2 | v64-v68 | lora | official-pretrain | v49_public_091_exact | 2.0e-5 | 2.0 | 652 | 1.4986 |  | 108.12 | ok |
 
 ## Derived Models
 - `v33_task_arith_v29_live55_r325`: theta_v29 + 0.55*(theta_v31-theta_v29) + 0.25*(theta_v32-theta_v29). CoT-native task arithmetic from the shared v29 base; no v7 source.
@@ -95,6 +101,11 @@ Updated: 2026-07-19 10:44:51
 - `v61_v29_public091_lora_r64_lr5e5_ep1`: Public clean-data LoRA over the strong v29 full checkpoint, targeting v29 user/video retention plus v51 ad/world gains.
 - `v62_v29_public091_lora_r64_lr2e5_ep1`: Lower-dose v29-based counterpart intended to preserve its structured-user and video behavior more conservatively.
 - `v63_public_guard_lora_r64_lr8e5_ep2`: Real-label task guard: duplicate valid user JSON and add at most one distinct original CoT target per video/live prompt without synthetic traces.
+- `v64_public091_loraplus_r64_lr2e5_x8_ep2`: LoRA+ ratio-8 neighbor of v58; keeps A at 2e-5 while reducing B from 3.2e-4 to 1.6e-4.
+- `v65_public091_loraplus_r128_lr1e5_x16_ep2`: Rank-128 LoRA+ with both learning rates halved relative to v58 for rank-aware capacity scaling.
+- `v66_public091_rslora_loraplus_r128_a16_lr1e5_x16_ep2`: Combines v58 LoRA+ optimizer geometry with v56 rank-stabilized high-rank scaling; targets ad and world gains.
+- `v67_public_user_replay_loraplus_r64_lr2e5_x16_ep2`: Applies v58 LoRA+ to exact public data plus one replay of each real parseable user target, isolating the useful v63 signal.
+- `v68_public091_pissa_loraplus_r64_lr2e5_x8_ep2`: PiSSA FSVD-16 initialization with the conservative LoRA+ ratio-8 optimizer; merged for submission compatibility.
 
 ## v34-v43 Evaluation Order
 
@@ -137,6 +148,14 @@ Updated: 2026-07-19 10:44:51
 8. v57 DoRA
 9. v59 rank-64 dropout-zero control
 10. v60 doubled LoRA scaling
+
+## v64-v68 Focused Evaluation Order
+
+1. v66 rsLoRA + LoRA+ combination
+2. v67 real-user replay + LoRA+
+3. v65 rank-128 rank-aware LoRA+
+4. v64 conservative ratio-8 LoRA+
+5. v68 PiSSA + LoRA+ exploration
 
 ## Notes
 - Ranking by train loss is only a training-health signal; use leaderboard evaluation for model selection.

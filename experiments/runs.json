@@ -496,9 +496,6 @@
     "lora_alpha": 96,
     "lora_dropout": 0.05,
     "note": "Interpolate between rank-64 v51 and rank-128 while keeping unit LoRA scaling and the successful two-epoch schedule.",
-    "configs": [
-      "/home/ll/llm4rec/experiments/configs/v54_public091_lora_r96_lr1e4_ep2.yaml"
-    ],
     "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
   },
   {
@@ -514,9 +511,6 @@
     "lora_alpha": 128,
     "lora_dropout": 0.05,
     "note": "Higher-capacity standard LoRA with a modestly reduced LR to test whether v51 remains rank-limited.",
-    "configs": [
-      "/home/ll/llm4rec/experiments/configs/v55_public091_lora_r128_lr8e5_ep2.yaml"
-    ],
     "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
   },
   {
@@ -534,9 +528,6 @@
     "use_rslora": true,
     "merge_to_full": true,
     "note": "Rank-stabilized LoRA branch; alpha/sqrt(rank) avoids the high-rank scaling collapse and is merged for submission compatibility.",
-    "configs": [
-      "/home/ll/llm4rec/experiments/configs/v56_public091_rslora_r128_a16_lr6e5_ep2.yaml"
-    ],
     "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
   },
   {
@@ -554,9 +545,6 @@
     "use_dora": true,
     "merge_to_full": true,
     "note": "DoRA magnitude/direction adaptation at v51 rank, merged to a standard full checkpoint after training.",
-    "configs": [
-      "/home/ll/llm4rec/experiments/configs/v57_public091_dora_r64_lr8e5_ep2.yaml"
-    ],
     "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
   },
   {
@@ -573,9 +561,6 @@
     "lora_dropout": 0.05,
     "loraplus_lr_ratio": 16.0,
     "note": "LoRA+ uses separate A/B learning rates; the conservative base LR gives the B matrix a 3.2e-4 update rate.",
-    "configs": [
-      "/home/ll/llm4rec/experiments/configs/v58_public091_loraplus_r64_lr2e5_x16_ep2.yaml"
-    ],
     "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
   },
   {
@@ -591,9 +576,6 @@
     "lora_alpha": 64,
     "lora_dropout": 0.0,
     "note": "Exact v51 control with adapter dropout removed, matching the recent public ORPO/GRPO adapter convention.",
-    "configs": [
-      "/home/ll/llm4rec/experiments/configs/v59_public091_lora_r64_drop0_lr1e4_ep2.yaml"
-    ],
     "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
   },
   {
@@ -609,9 +591,6 @@
     "lora_alpha": 128,
     "lora_dropout": 0.05,
     "note": "Double LoRA scaling with half v51 LR, isolating update geometry from nominal learning rate.",
-    "configs": [
-      "/home/ll/llm4rec/experiments/configs/v60_public091_lora_r64_a128_lr5e5_ep2.yaml"
-    ],
     "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
   },
   {
@@ -628,9 +607,6 @@
     "lora_dropout": 0.05,
     "merge_to_full": true,
     "note": "Public clean-data LoRA over the strong v29 full checkpoint, targeting v29 user/video retention plus v51 ad/world gains.",
-    "configs": [
-      "/home/ll/llm4rec/experiments/configs/v61_v29_public091_lora_r64_lr5e5_ep1.yaml"
-    ],
     "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018"
   },
   {
@@ -647,9 +623,6 @@
     "lora_dropout": 0.05,
     "merge_to_full": true,
     "note": "Lower-dose v29-based counterpart intended to preserve its structured-user and video behavior more conservatively.",
-    "configs": [
-      "/home/ll/llm4rec/experiments/configs/v62_v29_public091_lora_r64_lr2e5_ep1.yaml"
-    ],
     "model_path": "/home/ll/llm4rec/experiments/outputs/v29_v19_user_world_guard_lr8e7_ep018"
   },
   {
@@ -665,8 +638,105 @@
     "lora_alpha": 64,
     "lora_dropout": 0.05,
     "note": "Real-label task guard: duplicate valid user JSON and add at most one distinct original CoT target per video/live prompt without synthetic traces.",
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v64_public091_loraplus_r64_lr2e5_x8_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "2.0e-5",
+    "epochs": 2.0,
+    "seed": 202607208,
+    "batch": "v64-v68",
+    "weight_decay": 0.001,
+    "lora_rank": 64,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "loraplus_lr_ratio": 8.0,
+    "note": "LoRA+ ratio-8 neighbor of v58; keeps A at 2e-5 while reducing B from 3.2e-4 to 1.6e-4.",
     "configs": [
-      "/home/ll/llm4rec/experiments/configs/v63_public_guard_lora_r64_lr8e5_ep2.yaml"
+      "/home/ll/llm4rec/experiments/configs/v64_public091_loraplus_r64_lr2e5_x8_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v65_public091_loraplus_r128_lr1e5_x16_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "1.0e-5",
+    "epochs": 2.0,
+    "seed": 202607208,
+    "batch": "v64-v68",
+    "weight_decay": 0.001,
+    "lora_rank": 128,
+    "lora_alpha": 128,
+    "lora_dropout": 0.05,
+    "loraplus_lr_ratio": 16.0,
+    "note": "Rank-128 LoRA+ with both learning rates halved relative to v58 for rank-aware capacity scaling.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v65_public091_loraplus_r128_lr1e5_x16_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v66_public091_rslora_loraplus_r128_a16_lr1e5_x16_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "1.0e-5",
+    "epochs": 2.0,
+    "seed": 202607208,
+    "batch": "v64-v68",
+    "weight_decay": 0.001,
+    "lora_rank": 128,
+    "lora_alpha": 16,
+    "lora_dropout": 0.05,
+    "use_rslora": true,
+    "loraplus_lr_ratio": 16.0,
+    "merge_to_full": true,
+    "note": "Combines v58 LoRA+ optimizer geometry with v56 rank-stabilized high-rank scaling; targets ad and world gains.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v66_public091_rslora_loraplus_r128_a16_lr1e5_x16_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v67_public_user_replay_loraplus_r64_lr2e5_x16_ep2",
+    "dataset": "v67_public_user_replay",
+    "method": "lora",
+    "lr": "2.0e-5",
+    "epochs": 2.0,
+    "seed": 202607208,
+    "batch": "v64-v68",
+    "weight_decay": 0.001,
+    "lora_rank": 64,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "loraplus_lr_ratio": 16.0,
+    "note": "Applies v58 LoRA+ to exact public data plus one replay of each real parseable user target, isolating the useful v63 signal.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v67_public_user_replay_loraplus_r64_lr2e5_x16_ep2.yaml"
+    ],
+    "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
+  },
+  {
+    "name": "v68_public091_pissa_loraplus_r64_lr2e5_x8_ep2",
+    "dataset": "v49_public_091_exact",
+    "method": "lora",
+    "lr": "2.0e-5",
+    "epochs": 2.0,
+    "seed": 202607208,
+    "batch": "v64-v68",
+    "weight_decay": 0.001,
+    "lora_rank": 64,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "loraplus_lr_ratio": 8.0,
+    "pissa_init": true,
+    "pissa_iter": 16,
+    "merge_to_full": true,
+    "note": "PiSSA FSVD-16 initialization with the conservative LoRA+ ratio-8 optimizer; merged for submission compatibility.",
+    "configs": [
+      "/home/ll/llm4rec/experiments/configs/v68_public091_pissa_loraplus_r64_lr2e5_x8_ep2.yaml"
     ],
     "model_path": "OpenOneRec/OneReason-0.8B-pretrain-competition"
   }

@@ -269,6 +269,14 @@ def write_unified_summary() -> None:
         "9. v59 rank-64 dropout-zero control",
         "10. v60 doubled LoRA scaling",
         "",
+        "## v64-v68 Focused Evaluation Order",
+        "",
+        "1. v66 rsLoRA + LoRA+ combination",
+        "2. v67 real-user replay + LoRA+",
+        "3. v65 rank-128 rank-aware LoRA+",
+        "4. v64 conservative ratio-8 LoRA+",
+        "5. v68 PiSSA + LoRA+ exploration",
+        "",
         "## Notes",
         "- Ranking by train loss is only a training-health signal; use leaderboard evaluation for model selection.",
         "- Generated experiment JSONL and model outputs are ignored by git; JSONL can be rebuilt through the unified runner.",
@@ -1288,7 +1296,10 @@ def build_parser() -> argparse.ArgumentParser:
     trainable = RUNS + source_runs()
     parser = argparse.ArgumentParser(description="Unified LLM4Rec experiment runner")
     selection = parser.add_mutually_exclusive_group()
-    selection.add_argument("--batch", choices=["v31-v32", "v34-v43", "v44-v48", "v49-v53", "v54-v63"])
+    selection.add_argument(
+        "--batch",
+        choices=["v31-v32", "v34-v43", "v44-v48", "v49-v53", "v54-v63", "v64-v68"],
+    )
     selection.add_argument("--single", choices=[run["name"] for run in trainable])
     selection.add_argument("--list", action="store_true", help="list registered experiments without training")
     selection.add_argument("--rebuild-index", action="store_true", help="rebuild shared metadata files without preparing data or training")
@@ -1320,6 +1331,15 @@ def main() -> int:
     clean_names = {run["name"] for run in source_runs() if run.get("batch") == "v44-v48"}
     tuning_names = {run["name"] for run in source_runs() if run.get("batch") == "v49-v53"}
     advanced_names = {run["name"] for run in source_runs() if run.get("batch") == "v54-v63"}
+    focused_names = {run["name"] for run in source_runs() if run.get("batch") == "v64-v68"}
+    if args.batch == "v64-v68" or args.single in focused_names:
+        import source_data
+
+        return source_data.run_focused_experiments(
+            single=args.single,
+            gpu=args.gpu,
+            prepare_only=args.prepare_only,
+        )
     if args.batch == "v54-v63" or args.single in advanced_names:
         import source_data
 

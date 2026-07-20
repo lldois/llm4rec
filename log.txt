@@ -505,3 +505,43 @@ run baseline
 - cleanup: no checkpoint-* directories; generated v49/v63 JSONL and matching Arrow caches removed; raw public/local source data and deterministic conversion code retained.
 - gpu_release: GPU0=163MiB/0%, GPU1=15MiB/0%; no compute process remains.
 - recommended_eval_order: v63, v58, v56, v61, v54, v55, v62, v57, v59, v60. Official score must decide; training loss is not a leaderboard proxy.
+
+[2026-07-19 22:26:06] v49-v53 fixed-data tuning batch prepared
+- source=/home/ll/llm4rec/data/external/kuaishou-llmrec-sft-baseline-0.91/train.jsonl sha256=4d6b29d76974c9a1517c1b583858e744cae019cb26e1e2d90066e237ebbcf5f8
+- dataset=v49_public_091_exact records=32705 groups={'rec': 18651, 'item': 9684, 'user': 2792, 'world': 1578} routes={'no_think': 20934, 'think': 11771}
+- strategy=fixed clean data; compare exact public LoRA, longer LoRA, higher-rank LoRA, 1-epoch full SFT, and converged 3-epoch full SFT.
+- checkpoint_policy=no intermediate checkpoints; retain final weights only.
+
+[2026-07-19 22:26:07] v64-v68 focused batch prepared
+- fixed_dataset=v49_public_091_exact records=32705
+- user_replay_dataset=v67_public_user_replay records=35497 groups={'public_exact': 32705, 'user_json_replay': 2792} sha256=974801db6aadac76657e92f59d3281709cdd0b801da20ee3df483de22271a8ae
+- strategy=v58-centered LoRA+ search, one rsLoRA combination, one real-user replay, and one PiSSA initialization.
+- checkpoint_policy=no intermediate checkpoints; merge rsLoRA/PiSSA adapters to full models.
+
+[2026-07-19 22:26:51] v49-v53 fixed-data tuning batch prepared
+- source=/home/ll/llm4rec/data/external/kuaishou-llmrec-sft-baseline-0.91/train.jsonl sha256=4d6b29d76974c9a1517c1b583858e744cae019cb26e1e2d90066e237ebbcf5f8
+- dataset=v49_public_091_exact records=32705 groups={'rec': 18651, 'item': 9684, 'user': 2792, 'world': 1578} routes={'no_think': 20934, 'think': 11771}
+- strategy=fixed clean data; compare exact public LoRA, longer LoRA, higher-rank LoRA, 1-epoch full SFT, and converged 3-epoch full SFT.
+- checkpoint_policy=no intermediate checkpoints; retain final weights only.
+
+[2026-07-19 22:26:53] v64-v68 focused batch prepared
+- fixed_dataset=v49_public_091_exact records=32705
+- user_replay_dataset=v67_public_user_replay records=35497 groups={'public_exact': 32705, 'user_json_replay': 2792} sha256=974801db6aadac76657e92f59d3281709cdd0b801da20ee3df483de22271a8ae
+- strategy=v58-centered LoRA+ search, one rsLoRA combination, one real-user replay, and one PiSSA initialization.
+- checkpoint_policy=no intermediate checkpoints; merge rsLoRA/PiSSA adapters to full models.
+
+[2026-07-20 03:55:30] v64-v68 batch completed
+- summary=/home/ll/llm4rec/experiments/logs/summary.md
+- manifest=/home/ll/llm4rec/experiments/data/manifest.json
+- v66_public091_rslora_loraplus_r128_a16_lr1e5_x16_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=1.0e-5, epochs=2.0, train_loss=1.4015957800888577, runtime=6608.11s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v66_public091_rslora_loraplus_r128_a16_lr1e5_x16_ep2
+  note=Combines v58 LoRA+ optimizer geometry with v56 rank-stabilized high-rank scaling; targets ad and world gains.
+- v67_public_user_replay_loraplus_r64_lr2e5_x16_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v67_public_user_replay, lr=2.0e-5, epochs=2.0, train_loss=1.3518422758467843, runtime=8762.99s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v67_public_user_replay_loraplus_r64_lr2e5_x16_ep2
+  note=Applies v58 LoRA+ to exact public data plus one replay of each real parseable user target, isolating the useful v63 signal.
+- v65_public091_loraplus_r128_lr1e5_x16_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=1.0e-5, epochs=2.0, train_loss=1.4309972751359998, runtime=6580.86s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v65_public091_loraplus_r128_lr1e5_x16_ep2
+  note=Rank-128 LoRA+ with both learning rates halved relative to v58 for rank-aware capacity scaling.
+- v68_public091_pissa_loraplus_r64_lr2e5_x8_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=2.0e-5, epochs=2.0, train_loss=1.498551629072318, runtime=6487.09s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v68_public091_pissa_loraplus_r64_lr2e5_x8_ep2
+  note=PiSSA FSVD-16 initialization with the conservative LoRA+ ratio-8 optimizer; merged for submission compatibility.
+- v64_public091_loraplus_r64_lr2e5_x8_ep2: base=OpenOneRec/OneReason-0.8B-pretrain-competition, dataset=v49_public_091_exact, lr=2.0e-5, epochs=2.0, train_loss=1.4903434259028523, runtime=6528.21s, status=ok, output=/home/ll/llm4rec/experiments/outputs/v64_public091_loraplus_r64_lr2e5_x8_ep2
+  note=LoRA+ ratio-8 neighbor of v58; keeps A at 2e-5 while reducing B from 3.2e-4 to 1.6e-4.
+- cleanup: generated_jsonl=2, arrow_caches=2; checkpoints=none expected.
+- validation_errors=[]

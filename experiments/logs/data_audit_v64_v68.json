@@ -1,0 +1,16 @@
+{
+  "created_at": "2026-07-19 22:26:53",
+  "user_replay_dataset": {
+    "path": "/home/ll/llm4rec/experiments/data/v67_public_user_replay.jsonl",
+    "records": 35497,
+    "groups": {
+      "public_exact": 32705,
+      "user_json_replay": 2792
+    },
+    "sha256": "974801db6aadac76657e92f59d3281709cdd0b801da20ee3df483de22271a8ae",
+    "source_path": "/home/ll/llm4rec/data/external/kuaishou-llmrec-sft-baseline-0.91/train.jsonl",
+    "source_sha256": "4d6b29d76974c9a1517c1b583858e744cae019cb26e1e2d90066e237ebbcf5f8",
+    "transform": "Published clean rows plus one intentional replay of every parseable real user target; no synthetic response text and no video/live additions."
+  },
+  "policy": "Fixed public control for four runs; only v67 adds a single replay of real user labels."
+}

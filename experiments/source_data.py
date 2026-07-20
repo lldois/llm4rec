@@ -59,6 +59,7 @@ PUBLIC_091_URL = (
 PUBLIC_091_SHA256 = "4d6b29d76974c9a1517c1b583858e744cae019cb26e1e2d90066e237ebbcf5f8"
 PUBLIC_091_DATASET = "v49_public_091_exact"
 PUBLIC_GUARD_DATASET = "v63_public_user_video_live_guard"
+PUBLIC_USER_REPLAY_DATASET = "v67_public_user_replay"
 
 ITEMIC_RE = re.compile(r"<\|(?:prod|video|ad|living)_begin\|><s_a_\d+><s_b_\d+><s_c_\d+>")
 THINK_RE = re.compile(r"\s*<think>(.*?)</think>\s*(.*?)\s*\Z", re.S)
@@ -486,8 +487,53 @@ ADVANCED_RUNS = [
 ]
 
 
+FOCUSED_RUNS = [
+    {
+        "name": "v64_public091_loraplus_r64_lr2e5_x8_ep2", "dataset": PUBLIC_091_DATASET,
+        "model": OFFICIAL_BASE, "method": "lora", "lr": "2.0e-5", "epochs": 2.0,
+        "seed": SEED + 58, "batch": "v64-v68", "weight_decay": 0.001,
+        "lora_rank": 64, "lora_alpha": 64, "lora_dropout": 0.05,
+        "loraplus_lr_ratio": 8.0,
+        "note": "LoRA+ ratio-8 neighbor of v58; keeps A at 2e-5 while reducing B from 3.2e-4 to 1.6e-4.",
+    },
+    {
+        "name": "v65_public091_loraplus_r128_lr1e5_x16_ep2", "dataset": PUBLIC_091_DATASET,
+        "model": OFFICIAL_BASE, "method": "lora", "lr": "1.0e-5", "epochs": 2.0,
+        "seed": SEED + 58, "batch": "v64-v68", "weight_decay": 0.001,
+        "lora_rank": 128, "lora_alpha": 128, "lora_dropout": 0.05,
+        "loraplus_lr_ratio": 16.0,
+        "note": "Rank-128 LoRA+ with both learning rates halved relative to v58 for rank-aware capacity scaling.",
+    },
+    {
+        "name": "v66_public091_rslora_loraplus_r128_a16_lr1e5_x16_ep2", "dataset": PUBLIC_091_DATASET,
+        "model": OFFICIAL_BASE, "method": "lora", "lr": "1.0e-5", "epochs": 2.0,
+        "seed": SEED + 58, "batch": "v64-v68", "weight_decay": 0.001,
+        "lora_rank": 128, "lora_alpha": 16, "lora_dropout": 0.05,
+        "use_rslora": True, "loraplus_lr_ratio": 16.0, "merge_to_full": True,
+        "note": "Combines v58 LoRA+ optimizer geometry with v56 rank-stabilized high-rank scaling; targets ad and world gains.",
+    },
+    {
+        "name": "v67_public_user_replay_loraplus_r64_lr2e5_x16_ep2", "dataset": PUBLIC_USER_REPLAY_DATASET,
+        "model": OFFICIAL_BASE, "method": "lora", "lr": "2.0e-5", "epochs": 2.0,
+        "seed": SEED + 58, "batch": "v64-v68", "weight_decay": 0.001,
+        "lora_rank": 64, "lora_alpha": 64, "lora_dropout": 0.05,
+        "loraplus_lr_ratio": 16.0,
+        "note": "Applies v58 LoRA+ to exact public data plus one replay of each real parseable user target, isolating the useful v63 signal.",
+    },
+    {
+        "name": "v68_public091_pissa_loraplus_r64_lr2e5_x8_ep2", "dataset": PUBLIC_091_DATASET,
+        "model": OFFICIAL_BASE, "method": "lora", "lr": "2.0e-5", "epochs": 2.0,
+        "seed": SEED + 58, "batch": "v64-v68", "weight_decay": 0.001,
+        "lora_rank": 64, "lora_alpha": 64, "lora_dropout": 0.05,
+        "loraplus_lr_ratio": 8.0, "pissa_init": True, "pissa_iter": 16,
+        "merge_to_full": True,
+        "note": "PiSSA FSVD-16 initialization with the conservative LoRA+ ratio-8 optimizer; merged for submission compatibility.",
+    },
+]
+
+
 def all_source_runs() -> list[dict]:
-    return SOURCE_RUNS + CLEAN_RUNS + TUNING_RUNS + ADVANCED_RUNS
+    return SOURCE_RUNS + CLEAN_RUNS + TUNING_RUNS + ADVANCED_RUNS + FOCUSED_RUNS
 
 
 def stamp() -> str:
@@ -1545,6 +1591,75 @@ def prepare_advanced_data() -> dict:
     return manifest
 
 
+def prepare_focused_data() -> dict:
+    """Prepare the fixed public control and a real-label user replay variant."""
+    manifest = prepare_public_091_data()
+    public_rows = []
+    user_rows = []
+    with PUBLIC_091_SOURCE.open("r", encoding="utf-8") as fp:
+        for line in fp:
+            source = json.loads(line)[0]
+            row = {
+                "instruction": source.get("system", ""),
+                "input": source.get("prompt", ""),
+                "output": source.get("response", ""),
+                "history": [],
+            }
+            public_rows.append(row)
+            _, final = legacy.split_think_output(row["output"])
+            try:
+                parsed = json.loads(final)
+            except Exception:
+                parsed = None
+            if isinstance(parsed, (dict, list)):
+                user_rows.append(dict(row))
+
+    records = public_rows + user_rows
+    random.Random(SEED + 58).shuffle(records)
+    output = DATA_DIR / f"{PUBLIC_USER_REPLAY_DATASET}.jsonl"
+    with output.open("w", encoding="utf-8") as fp:
+        for row in records:
+            fp.write(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n")
+
+    meta = {
+        "path": str(output.resolve()),
+        "records": len(records),
+        "groups": {
+            "public_exact": len(public_rows),
+            "user_json_replay": len(user_rows),
+        },
+        "sha256": sha256_file(output),
+        "source_path": str(PUBLIC_091_SOURCE.resolve()),
+        "source_sha256": PUBLIC_091_SHA256,
+        "transform": (
+            "Published clean rows plus one intentional replay of every parseable real user target; "
+            "no synthetic response text and no video/live additions."
+        ),
+    }
+    manifest[PUBLIC_USER_REPLAY_DATASET] = meta
+    manifest["_focused_v64_v68"] = {
+        "user_replay_dataset": meta,
+        "policy": "Fixed public control for four runs; only v67 adds a single replay of real user labels.",
+    }
+    legacy.merge_manifest({
+        PUBLIC_USER_REPLAY_DATASET: meta,
+        "_focused_v64_v68": manifest["_focused_v64_v68"],
+    })
+    (LOG_DIR / "data_audit_v64_v68.json").write_text(
+        json.dumps({"created_at": stamp(), **manifest["_focused_v64_v68"]}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    append(
+        TOP_LOG,
+        f"\n[{stamp()}] v64-v68 focused batch prepared\n"
+        f"- fixed_dataset={PUBLIC_091_DATASET} records={manifest[PUBLIC_091_DATASET]['records']}\n"
+        f"- user_replay_dataset={PUBLIC_USER_REPLAY_DATASET} records={len(records)} groups={meta['groups']} sha256={meta['sha256']}\n"
+        "- strategy=v58-centered LoRA+ search, one rsLoRA combination, one real-user replay, and one PiSSA initialization.\n"
+        "- checkpoint_policy=no intermediate checkpoints; merge rsLoRA/PiSSA adapters to full models.\n",
+    )
+    return manifest
+
+
 def register_datasets(manifest: dict) -> None:
     info = json.loads(DATASET_INFO.read_text(encoding="utf-8"))
     for name, value in manifest.items():
@@ -1574,6 +1689,8 @@ def yaml_text(
     use_rslora: bool = False,
     use_dora: bool = False,
     loraplus_lr_ratio: float | None = None,
+    pissa_init: bool = False,
+    pissa_iter: int = 16,
     gradient_accumulation_steps: int = 4,
 ) -> str:
     if method not in {"full", "lora"}:
@@ -1592,6 +1709,8 @@ lora_target: all"""
             method_lines += "\nuse_dora: true"
         if loraplus_lr_ratio is not None:
             method_lines += f"\nloraplus_lr_ratio: {loraplus_lr_ratio}"
+        if pissa_init:
+            method_lines += f"\npissa_init: true\npissa_iter: {pissa_iter}"
     eval_lines = ""
     if validation_size:
         eval_lines = f"""
@@ -1665,6 +1784,8 @@ def run_yaml_text(run: dict, dataset: str, output: Path, model: str, lr: str, ep
         use_rslora=run.get("use_rslora", False),
         use_dora=run.get("use_dora", False),
         loraplus_lr_ratio=run.get("loraplus_lr_ratio"),
+        pissa_init=run.get("pissa_init", False),
+        pissa_iter=run.get("pissa_iter", 16),
         gradient_accumulation_steps=run.get("gradient_accumulation_steps", 4),
     )
 
@@ -1722,6 +1843,8 @@ def prepare_configs_and_recipes(manifest: dict, runs: list[dict] | None = None) 
                 "use_rslora": run.get("use_rslora", False),
                 "use_dora": run.get("use_dora", False),
                 "loraplus_lr_ratio": run.get("loraplus_lr_ratio"),
+                "pissa_init": run.get("pissa_init", False),
+                "pissa_iter": run.get("pissa_iter"),
             },
             "merge_to_full": run.get("merge_to_full", False),
             "stages": run.get("stages"),
@@ -2170,4 +2293,49 @@ def run_advanced_experiments(
     errors = validate_outputs(results, ADVANCED_RUNS)
     cleanup = cleanup_generated(manifest)
     write_summary(results, manifest, cleanup, errors, ADVANCED_RUNS, batch)
+    return 1 if errors else 0
+
+
+def run_focused_experiments(
+    *,
+    single: str | None = None,
+    gpu: int = 0,
+    prepare_only: bool = False,
+) -> int:
+    batch = "v64-v68"
+    for path in [DATA_DIR, CONFIG_DIR, OUTPUT_DIR, LOG_DIR]:
+        path.mkdir(parents=True, exist_ok=True)
+    manifest = prepare_focused_data()
+    register_datasets(manifest)
+    prepare_configs_and_recipes(manifest, FOCUSED_RUNS)
+    if prepare_only:
+        append(STATUS_PATH, json.dumps({
+            "time": stamp(), "batch": batch, "event": "prepare_only_exit",
+        }, ensure_ascii=False) + "\n")
+        return 0
+    if single:
+        run = next(item for item in FOCUSED_RUNS if item["name"] == single)
+        results = [train_run(run, gpu, batch)]
+        errors = validate_outputs(results, [run])
+        cleanup = cleanup_generated(manifest)
+        legacy.merge_results(results)
+        legacy.write_unified_summary()
+        (OUTPUT_DIR / run["name"] / "single_run_result.json").write_text(
+            json.dumps({"result": results[0], "errors": errors, "cleanup": cleanup}, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        return 1 if errors else 0
+
+    by_name = {run["name"]: run for run in FOCUSED_RUNS}
+    execution_order = [
+        by_name["v66_public091_rslora_loraplus_r128_a16_lr1e5_x16_ep2"],
+        by_name["v67_public_user_replay_loraplus_r64_lr2e5_x16_ep2"],
+        by_name["v65_public091_loraplus_r128_lr1e5_x16_ep2"],
+        by_name["v68_public091_pissa_loraplus_r64_lr2e5_x8_ep2"],
+        by_name["v64_public091_loraplus_r64_lr2e5_x8_ep2"],
+    ]
+    results = run_all(execution_order, batch)
+    errors = validate_outputs(results, FOCUSED_RUNS)
+    cleanup = cleanup_generated(manifest)
+    write_summary(results, manifest, cleanup, errors, FOCUSED_RUNS, batch)
     return 1 if errors else 0
